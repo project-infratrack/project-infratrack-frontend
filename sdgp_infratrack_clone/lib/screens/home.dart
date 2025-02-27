@@ -31,14 +31,23 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFFEBF8FF),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black),
+          icon: const Icon(
+            Icons.menu,
+            color: Colors.black,
+            size: 35.0, // Slightly smaller hamburger menu icon
+          ),
           onPressed: () {},
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle, color: Colors.black),
+            icon: const Icon(
+              Icons.account_circle,
+              color: Colors.black,
+              size: 35.0, // Slightly smaller profile icon
+            ),
             onPressed: () {
-              Navigator.pushReplacementNamed(context, "/profile");},
+              Navigator.pushReplacementNamed(context, "/profile");
+            },
           ),
         ],
       ),
