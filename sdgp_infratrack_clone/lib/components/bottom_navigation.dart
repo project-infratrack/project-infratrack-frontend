@@ -15,21 +15,24 @@ class BottomNavigation extends StatelessWidget {
     return SafeArea(
       // Ensures the nav bar doesn't overlap system UI elements
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        height: 80,
-        width: double.infinity,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        height: 90,
         decoration: BoxDecoration(
-          color: const Color(0xFFEBF8FF),
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFFFFFF), Color(0xFFEBF8FF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(35),
             topRight: Radius.circular(35),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 15,
+              offset: const Offset(0, -3),
             ),
           ],
         ),
@@ -43,11 +46,13 @@ class BottomNavigation extends StatelessWidget {
               children: [
                 NavItem(
                   icon: Icons.home,
+                  label: "Home",
                   isSelected: selectedIndex == 0,
                   onTap: () => onItemTapped(0),
                 ),
                 NavItem(
-                  icon: Icons.history,
+                  icon: Icons.timelapse, // Modern icon for history
+                  label: "History",
                   isSelected: selectedIndex == 1,
                   onTap: () => onItemTapped(1),
                 ),
@@ -62,7 +67,7 @@ class BottomNavigation extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
-                      blurRadius: 8,
+                      blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -85,12 +90,14 @@ class BottomNavigation extends StatelessWidget {
 
 class NavItem extends StatelessWidget {
   final IconData icon;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const NavItem({
     super.key,
     required this.icon,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
@@ -102,26 +109,39 @@ class NavItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
-        width: 60,
+        width: 80,
         height: 60,
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF2C3E50) : Colors.transparent,
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(30),
           border: isSelected
               ? null
               : Border.all(color: const Color(0xFF2C3E50), width: 2),
         ),
-        // Animated scaling of the icon for interactive feedback.
-        child: AnimatedScale(
-          scale: isSelected ? 1.2 : 1.0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: Icon(
-            icon,
-            color: isSelected ? Colors.white : const Color(0xFF2C3E50),
-            size: 28,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedScale(
+              scale: isSelected ? 1.2 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 300),
+              style: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+              child: Text(label),
+            ),
+          ],
         ),
       ),
     );
