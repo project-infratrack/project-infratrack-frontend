@@ -12,54 +12,136 @@ class BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      color: const Color(0xFFEBF8FF),
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 12,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SafeArea(
+      // Ensures the nav bar doesn't overlap system UI elements
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        height: 90,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFFFFFF), Color(0xFFEBF8FF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(35),
+            topRight: Radius.circular(35),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 15,
+              offset: const Offset(0, -3),
+            ),
+          ],
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            _buildNavButton(Icons.home, 0, context),
-            _buildFloatingActionButton(context),
-            _buildNavButton(Icons.history, 1, context),
+            // Row with two interactive nav items.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                NavItem(
+                  icon: Icons.home,
+                  label: "Home",
+                  isSelected: selectedIndex == 0,
+                  onTap: () => onItemTapped(0),
+                ),
+                NavItem(
+                  icon: Icons.timelapse, // Modern icon for history
+                  label: "History",
+                  isSelected: selectedIndex == 1,
+                  onTap: () => onItemTapped(1),
+                ),
+              ],
+            ),
+            // Center FAB positioned to overlap the nav bar.
+            Positioned(
+              top: -30,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  backgroundColor: const Color(0xFF2C3E50),
+                  onPressed: () {
+                    Navigator.pushNamed(context, "/add_report");
+                  },
+                  child: const Icon(Icons.add, size: 36, color: Colors.white),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  // Custom Floating Action Button (Increased Size)
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return SizedBox(
-      height: 90, // Further increased height
-      width: 90, // Further increased width
-      child: FloatingActionButton(
-        backgroundColor: const Color(0xFF2C3E50),
-        shape: const CircleBorder(),
-        onPressed: () {
-          Navigator.pushNamed(context, "/add_report");
-        },
-        child: const Icon(Icons.add, color: Colors.white, size: 36), // Bigger icon
-      ),
-    );
-  }
+class NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  // Custom Navigation Button (Increased Size)
-  Widget _buildNavButton(IconData icon, int index, BuildContext context) {
+  const NavItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onItemTapped(index),
-      child: Container(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        width: 80,
+        height: 60,
         decoration: BoxDecoration(
-          color: const Color(0xFF2C3E50),
-          borderRadius: BorderRadius.circular(50),
+          color: isSelected ? const Color(0xFF2C3E50) : Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
+          border: isSelected
+              ? null
+              : Border.all(color: const Color(0xFF2C3E50), width: 2),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 3), // Further increased padding
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 33, // Larger icon size
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedScale(
+              scale: isSelected ? 1.2 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 300),
+              style: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+              child: Text(label),
+            ),
+          ],
         ),
       ),
     );
