@@ -12,54 +12,116 @@ class BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      color: const Color(0xFFEBF8FF),
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 12,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SafeArea(
+      // Ensures the nav bar doesn't overlap system UI elements
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        height: 80,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFEBF8FF),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(35),
+            topRight: Radius.circular(35),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            _buildNavButton(Icons.home, 0, context),
-            _buildFloatingActionButton(context),
-            _buildNavButton(Icons.history, 1, context),
+            // Row with two interactive nav items.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                NavItem(
+                  icon: Icons.home,
+                  isSelected: selectedIndex == 0,
+                  onTap: () => onItemTapped(0),
+                ),
+                NavItem(
+                  icon: Icons.history,
+                  isSelected: selectedIndex == 1,
+                  onTap: () => onItemTapped(1),
+                ),
+              ],
+            ),
+            // Center FAB positioned to overlap the nav bar.
+            Positioned(
+              top: -30,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  backgroundColor: const Color(0xFF2C3E50),
+                  onPressed: () {
+                    Navigator.pushNamed(context, "/add_report");
+                  },
+                  child: const Icon(Icons.add, size: 36, color: Colors.white),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  // Custom Floating Action Button (Increased Size)
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return SizedBox(
-      height: 90, // Further increased height
-      width: 90, // Further increased width
-      child: FloatingActionButton(
-        backgroundColor: const Color(0xFF2C3E50),
-        shape: const CircleBorder(),
-        onPressed: () {
-          Navigator.pushNamed(context, "/add_report");
-        },
-        child: const Icon(Icons.add, color: Colors.white, size: 36), // Bigger icon
-      ),
-    );
-  }
+class NavItem extends StatelessWidget {
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  // Custom Navigation Button (Increased Size)
-  Widget _buildNavButton(IconData icon, int index, BuildContext context) {
+  const NavItem({
+    super.key,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onItemTapped(index),
-      child: Container(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        width: 60,
+        height: 60,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFF2C3E50),
-          borderRadius: BorderRadius.circular(50),
+          color: isSelected ? const Color(0xFF2C3E50) : Colors.transparent,
+          shape: BoxShape.circle,
+          border: isSelected
+              ? null
+              : Border.all(color: const Color(0xFF2C3E50), width: 2),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 3), // Further increased padding
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 33, // Larger icon size
+        // Animated scaling of the icon for interactive feedback.
+        child: AnimatedScale(
+          scale: isSelected ? 1.2 : 1.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : const Color(0xFF2C3E50),
+            size: 28,
+          ),
         ),
       ),
     );

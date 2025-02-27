@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'screens/login.dart';
 import 'screens/signup.dart';
 import 'screens/home.dart';
-import 'screens/userprofile.dart'; // Import User Profile Screen
-//import 'screens/add_report.dart'; // Import Add Report Screen
+import 'screens/user_profile.dart';
+import 'screens/recover_password.dart';
+import 'screens/recover_password_otp.dart'; // Import OTP Screen
+import 'screens/reset_password.dart'; // Placeholder for Reset Password
+// import 'screens/add_report.dart'; // Uncomment when implemented
 
 void main() {
   runApp(const MyApp());
@@ -29,8 +32,11 @@ class MyApp extends StatelessWidget {
         "/signup": (context) => const SignUpScreen(),
         "/login": (context) => const LoginScreen(),
         "/home": (context) => const HomeScreen(),
-        "/profile": (context) => const UserProfileScreen(), // Added User Profile Screen
-        //"/add_report": (context) => const AddReportScreen(), // Added Add Report Screen
+        "/profile": (context) => const UserProfileScreen(),
+        "/recover_password": (context) => const RecoverPasswordScreen(),
+        "/recover_password_otp": (context) => const RecoverPasswordOtpScreen(), // OTP Screen
+        "/reset_password": (context) => const ResetPasswordScreen(), // Reset Password Screen
+        // "/add_report": (context) => const AddReportScreen(), // Uncomment when available
       },
     );
   }
