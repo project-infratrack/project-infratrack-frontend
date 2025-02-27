@@ -37,7 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.black),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, "/profile");},
           ),
         ],
       ),

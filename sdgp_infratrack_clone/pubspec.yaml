@@ -31,5 +31,6 @@ flutter:
   assets:
     - assets/png/logo.png
     - assets/png/logo2.png
+    - assets/png/profile01.png
 
 
