@@ -1,0 +1,2 @@
+D:/IIT/YR 2/SDGP/Project_Infratrack/project-infratrack-frontend/sdgp_infratrack_clone/android/app/.cxx/Debug/4p01e664/x86/CMakeFiles/edit_cache.dir
+D:/IIT/YR 2/SDGP/Project_Infratrack/project-infratrack-frontend/sdgp_infratrack_clone/android/app/.cxx/Debug/4p01e664/x86/CMakeFiles/rebuild_cache.dir
