@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
 
 class IssueReportedScreen extends StatelessWidget {
+  const IssueReportedScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xE6F1FAFF),
+      backgroundColor: const Color(0xE6F1FAFF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.close, color: Colors.black),
+          icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -18,7 +20,7 @@ class IssueReportedScreen extends StatelessWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return Container(
+          return SizedBox(
             width: constraints.maxWidth,
             height: constraints.maxHeight,
             child: Column(
@@ -29,9 +31,9 @@ class IssueReportedScreen extends StatelessWidget {
                 Container(
                   width: constraints.maxWidth * 0.8,
                   height: 500,
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Color(0xFF2C3E50),
+                    color: const Color(0xFF2C3E50),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -47,7 +49,7 @@ class IssueReportedScreen extends StatelessWidget {
                           size: constraints.maxWidth * 0.15,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
                         "Issue Reported Successfully!",
                         style: TextStyle(

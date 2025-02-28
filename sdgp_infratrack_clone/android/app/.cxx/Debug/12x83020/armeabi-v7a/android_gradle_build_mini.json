@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "D:\\IIT\\Flutter\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\kehel\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\kehel\\Desktop\\Infratrack_SDGP\\SDGP_G-153_Infratrack_ClientSide\\sdgp_infratrack_clone\\android\\app\\.cxx\\Debug\\12x83020\\armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\kehel\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\kehel\\Desktop\\Infratrack_SDGP\\SDGP_G-153_Infratrack_ClientSide\\sdgp_infratrack_clone\\android\\app\\.cxx\\Debug\\12x83020\\armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

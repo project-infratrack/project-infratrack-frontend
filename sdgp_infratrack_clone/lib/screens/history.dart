@@ -37,7 +37,7 @@ class HistoryScreen extends StatelessWidget {
     },
   ];
 
-  HistoryScreen({Key? key}) : super(key: key);
+  HistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class HistoryScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.of(context).pop(); // Or handle as needed
+            Navigator.pushReplacementNamed(context, "/home");
           },
         ),
         actions: [
@@ -57,7 +57,7 @@ class HistoryScreen extends StatelessWidget {
             icon:
                 const Icon(Icons.account_circle, color: Colors.black, size: 28),
             onPressed: () {
-              // Handle account icon tap
+              Navigator.pushReplacementNamed(context, "/profile");
             },
           ),
         ],
@@ -91,9 +91,14 @@ class HistoryScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigation(
-        selectedIndex: 2,
+        // Set the selectedIndex to 1 for the History page
+        selectedIndex: 1,
         onItemTapped: (index) {
-          // Handle navigation changes
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, "/home");
+          } else if (index == 1) {
+            // Already on History page, no action needed.
+          }
         },
       ),
     );
@@ -110,7 +115,7 @@ class HistoryScreen extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          // Handle card tap, e.g., navigate to a detail page
+          Navigator.pushReplacementNamed(context, "/problem_reported");
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
