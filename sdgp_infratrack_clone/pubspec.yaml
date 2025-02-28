@@ -3,28 +3,22 @@ description: "A new Flutter project."
 
 publish_to: 'none' 
 
-
 version: 1.0.0+1
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
 
-
 dependencies:
   flutter:
     sdk: flutter
-
-
-
   cupertino_icons: ^1.0.6
-  flutter_otp_text_field: ^1.4.0+2
-  flutter_launcher_icons: ^0.14.3
+  image_picker: ^0.8.7+3
+  otp_text_field: ^1.1.3
+  flutter_otp_text_field: ^1.5.1+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-
   flutter_lints: ^3.0.0
 
 flutter:
@@ -34,10 +28,6 @@ flutter:
     - assets/png/logo.png
     - assets/png/logo2.png
     - assets/png/profile01.png
-    - assets/png/icon.png
-
-
-flutter_icons:
-  image_path: "assets/png/icon.png"    # Path to your app icon image
-  android: true
-  ios: true
+    - assets/png/map_placeholder.png
+    - assets/png/pothole.png
+    - assets/png/map_placeholder2.png
