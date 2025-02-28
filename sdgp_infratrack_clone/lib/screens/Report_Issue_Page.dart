@@ -65,7 +65,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
               icon: const Icon(Icons.account_circle,
                   color: Colors.black, size: 28),
               onPressed: () {
-                // Handle account button press
+                Navigator.pushReplacementNamed(context, "/profile");
               },
             ),
           ],
@@ -101,9 +101,13 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           ),
         ),
         bottomNavigationBar: BottomNavigation(
-          selectedIndex: 1,
+          selectedIndex: 2,
           onItemTapped: (index) {
-            // Handle navigation changes if needed
+            if (index == 0) {
+              Navigator.pushReplacementNamed(context, "/home");
+            } else if (index == 1) {
+              Navigator.pushReplacementNamed(context, "/history");
+            }
           },
         ),
       ),
@@ -205,7 +209,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.asset(
-        'assets/png/map_placeholder2.png',
+        'assets/png/map_placeholder.png',
         height: 180,
         width: double.infinity,
         fit: BoxFit.cover,
