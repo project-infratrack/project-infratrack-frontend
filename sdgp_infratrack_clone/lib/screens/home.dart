@@ -205,7 +205,7 @@ class HomeScreenState extends State<HomeScreen> {
 }
 
 //-------------------
-// IssueCard Widget remains unchanged
+// IssueCard Widget with onTap navigating to "/issue_nearby"
 //-------------------
 class IssueCard extends StatefulWidget {
   final String title;
@@ -282,7 +282,7 @@ class _IssueCardState extends State<IssueCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () {
-          // Optional: Handle card tap to show more details.
+          Navigator.pushNamed(context, "/issue_nearby");
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
