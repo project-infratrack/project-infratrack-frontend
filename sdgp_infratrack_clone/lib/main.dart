@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:infratrack/admin_screens/Gov_issue_description.dart';
+import 'package:infratrack/admin_screens/Government_issue_screen%20low.dart';
+import 'package:infratrack/admin_screens/Government_issue_screen_high.dart';
+import 'package:infratrack/admin_screens/Government_issue_screen_mid.dart';
+import 'package:infratrack/screens/Issue_Reported.dart';
+import 'package:infratrack/screens/Problem_Page_Reported.dart';
+import 'package:infratrack/screens/Report_Issue_Page.dart';
+import 'package:infratrack/screens/history.dart';
+import 'package:infratrack/screens/issue_nearby.dart';
+import 'package:infratrack/screens/issue_rejected.dart';
 import 'screens/login.dart';
 import 'screens/signup.dart';
 import 'screens/home.dart';
-import 'screens/user_profile.dart';
-import 'screens/recover_password.dart';
-import 'screens/recover_password_otp.dart'; // Import OTP Screen
-import 'screens/reset_password.dart'; // Placeholder for Reset Password
-// import 'screens/add_report.dart'; // Uncomment when implemented
+import 'screens/userprofile.dart'; // Import User Profile Screen
+//import 'screens/add_report.dart'; // Import Add Report Screen
 
 void main() {
   runApp(const MyApp());
@@ -33,10 +40,19 @@ class MyApp extends StatelessWidget {
         "/login": (context) => const LoginScreen(),
         "/home": (context) => const HomeScreen(),
         "/profile": (context) => const UserProfileScreen(),
-        "/recover_password": (context) => const RecoverPasswordScreen(),
-        "/recover_password_otp": (context) => const RecoverPasswordOtpScreen(), // OTP Screen
-        "/reset_password": (context) => const ResetPasswordScreen(), // Reset Password Screen
-        // "/add_report": (context) => const AddReportScreen(), // Uncomment when available
+        "/issue_nearby": (context) => IssuesNearbyScreen(),
+        "/Report_Issue_Page": (context) => ReportIssueScreen(),
+        "/history": (context) => HistoryScreen(),
+        "/problem_page_reported": (context) => ProblemPageReportedScreen(),
+        "/issue_reported": (context) => IssueReportedScreen(),
+        "/issue_rejected": (context) => IssueRejectedScreen(),
+        "/government_issue_Low": (context) => GovernmentIssueScreenLow(),
+        "/government_issue_High": (context) => GovernmentIssueScreenHigh(),
+        "/government_issue_Mid": (context) => GovernmentIssueScreenMid(),
+        "/gove_issue_description": (context) =>
+            GovernmentIssueDescriptionScreen(),
+        // Added User Profile Screen
+        //"/add_report": (context) => const AddReportScreen(), // Added Add Report Screen
       },
     );
   }
