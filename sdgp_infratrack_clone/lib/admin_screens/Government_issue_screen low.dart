@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
 
 class GovernmentIssueScreenLow extends StatelessWidget {
-  const GovernmentIssueScreenLow({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE6F1FA),
+      backgroundColor: Color(0xFFE6F1FA),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {},
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.account_circle, color: Colors.black, size: 28),
+            icon: Icon(Icons.account_circle, color: Colors.black, size: 28),
             onPressed: () {},
           ),
         ],
@@ -28,7 +25,7 @@ class GovernmentIssueScreenLow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               "Low priority issues",
               style: TextStyle(
                 fontSize: 22,
@@ -36,7 +33,7 @@ class GovernmentIssueScreenLow extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Center(
               child: Column(
                 children: [
@@ -44,13 +41,13 @@ class GovernmentIssueScreenLow extends StatelessWidget {
                     'assets/png/logo2.png',
                     height: 100,
                   ),
-                  const SizedBox(height: 50),
+                  SizedBox(height: 50),
                   _buildIssueButton(context, "Issue 1"),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   _buildIssueButton(context, "Issue 2"),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   _buildIssueButton(context, "Issue 3"),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   _buildIssueButton(context, "Issue 4"),
                 ],
               ),
@@ -75,16 +72,16 @@ class GovernmentIssueScreenLow extends StatelessWidget {
             0.65, // Custom width 85% of screen
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2C3E50),
+            backgroundColor: Color(0xFF2C3E50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () {},
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               color: Colors.white,
             ),

@@ -13,17 +13,13 @@ class IssuesNearbyScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, "/home");
-          },
+          onPressed: () {},
         ),
         actions: [
           IconButton(
             icon:
                 const Icon(Icons.account_circle, color: Colors.black, size: 28),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, "/profile");
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -37,13 +33,9 @@ class IssuesNearbyScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigation(
-        selectedIndex: 2,
+        selectedIndex: 0,
         onItemTapped: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, "/home");
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, "/history");
-          }
+          // Handle navigation changes
         },
       ),
     );

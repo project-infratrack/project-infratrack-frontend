@@ -54,11 +54,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 50),
 
-                      // Username Field (Improved)
+                      // Username Field
                       TextField(
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.person, color: Colors.white70),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                           filled: true,
                           fillColor: const Color(0xFF2C3E50),
                           hintText: "Username",
@@ -67,21 +65,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide.none,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.white, width: 2),
-                          ),
                         ),
                         style: const TextStyle(color: Colors.white),
                       ),
                       const SizedBox(height: 25),
 
-                      // Password Field with Visibility Toggle (Improved)
+                      // Password Field with Visibility Toggle
                       TextField(
                         obscureText: _obscureText,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.lock, color: Colors.white70),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                           filled: true,
                           fillColor: const Color(0xFF2C3E50),
                           hintText: "Password",
@@ -89,10 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.white, width: 2),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -114,9 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, "/recover_password");
-                          },
+                          onPressed: () {},
                           child: const Text(
                             "Forgot password ?",
                             style: TextStyle(color: Colors.black, fontSize: 14),

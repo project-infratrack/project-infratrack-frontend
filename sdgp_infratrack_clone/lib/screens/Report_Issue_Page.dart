@@ -180,8 +180,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: _selectedImage == null
-            ? const Column(
-                children: [
+            ? Column(
+                children: const [
                   Icon(Icons.cloud_upload, color: Colors.white, size: 32),
                   SizedBox(height: 8),
                   Text("Upload Image(s)*",

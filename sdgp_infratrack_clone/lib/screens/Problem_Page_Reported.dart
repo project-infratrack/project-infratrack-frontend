@@ -6,43 +6,52 @@ class ProblemPageReportedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE6F1FA),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, "/history");
-          },
+    return Container(
+      // 1. Gradient background
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 255, 255, 255),
+            Color.fromARGB(255, 255, 255, 255)
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        actions: [
-          IconButton(
-            icon:
-                const Icon(Icons.account_circle, color: Colors.black, size: 28),
-            onPressed: () {},
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildIssueCard(),
+      child: Scaffold(
+        // Make scaffold background transparent so gradient shows through
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.of(context).pop(); // Or handle as needed
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle,
+                  color: Colors.black, size: 28),
+              onPressed: () {
+                // Handle account icon tap
+              },
+            ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigation(
-        selectedIndex: 2,
-        onItemTapped: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, "/home");
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, "/history");
-          }
-        },
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: _buildIssueCard(),
+          ),
+        ),
+        bottomNavigationBar: BottomNavigation(
+          selectedIndex: 0,
+          onItemTapped: (index) {
+            // Handle navigation changes
+          },
+        ),
       ),
     );
   }
@@ -62,7 +71,7 @@ class ProblemPageReportedScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Title
-            const Text(
+            Text(
               "Pothole in Nugegoda",
               style: TextStyle(
                 fontSize: 22,
@@ -71,7 +80,7 @@ class ProblemPageReportedScreen extends StatelessWidget {
                 shadows: [
                   Shadow(
                     color: Colors.black12,
-                    offset: Offset(2, 2),
+                    offset: const Offset(2, 2),
                     blurRadius: 3,
                   ),
                 ],
