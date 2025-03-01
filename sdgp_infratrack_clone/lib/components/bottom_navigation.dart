@@ -2,21 +2,24 @@ import 'package:flutter/material.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int selectedIndex;
-  final Function(int) onItemTapped;
+  final ValueChanged<int> onItemTapped;
 
   const BottomNavigation({
-    super.key,
+    Key? key,
     required this.selectedIndex,
     required this.onItemTapped,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Maintain the original color.
+    const navColor = Color(0xFF2C3E50);
+
     return SafeArea(
-      // Ensures the nav bar doesn't overlap system UI elements
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.symmetric(horizontal: 32),
+        // Increased height from 70 to 90
         height: 90,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -24,10 +27,7 @@ class BottomNavigation extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(35),
-            topRight: Radius.circular(35),
-          ),
+          borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.15),
@@ -36,50 +36,36 @@ class BottomNavigation extends StatelessWidget {
             ),
           ],
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // Row with two interactive nav items.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                NavItem(
-                  icon: Icons.home,
-                  label: "Home",
-                  isSelected: selectedIndex == 0,
-                  onTap: () => onItemTapped(0),
-                ),
-                NavItem(
-                  icon: Icons.timelapse, // Modern icon for history
-                  label: "History",
-                  isSelected: selectedIndex == 1,
-                  onTap: () => onItemTapped(1),
-                ),
-              ],
+            NavItem(
+              icon: Icons.home,
+              label: "Home",
+              isSelected: selectedIndex == 0,
+              onTap: () => onItemTapped(0),
+              navColor: navColor,
             ),
-            // Center FAB positioned to overlap the nav bar.
-            Positioned(
-              top: -30,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: FloatingActionButton(
-                  backgroundColor: const Color(0xFF2C3E50),
-                  onPressed: () {
-                    Navigator.pushNamed(context, "/add_report");
-                  },
-                  child: const Icon(Icons.add, size: 36, color: Colors.white),
-                ),
+            const SizedBox(width: 55),
+            SizedBox(
+              width: 60,
+              height: 60,
+              child: FloatingActionButton(
+                backgroundColor: navColor,
+                onPressed: () {
+                  Navigator.pushNamed(context, "/add_report");
+                },
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add, size: 24, color: Colors.white),
               ),
+            ),
+            const SizedBox(width: 55),
+            NavItem(
+              icon: Icons.history,
+              label: "History",
+              isSelected: selectedIndex == 1,
+              onTap: () => onItemTapped(1),
+              navColor: navColor,
             ),
           ],
         ),
@@ -93,30 +79,31 @@ class NavItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final Color navColor;
 
   const NavItem({
-    super.key,
+    Key? key,
     required this.icon,
     required this.label,
     required this.isSelected,
     required this.onTap,
-  });
+    required this.navColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
-        width: 80,
+        width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF2C3E50) : Colors.transparent,
+          color: isSelected ? navColor : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
-          border: isSelected
-              ? null
-              : Border.all(color: const Color(0xFF2C3E50), width: 2),
+          border: isSelected ? null : Border.all(color: navColor, width: 2),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -127,19 +114,22 @@ class NavItem extends StatelessWidget {
               curve: Curves.easeOut,
               child: Icon(
                 icon,
-                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
-                size: 28,
+                color: isSelected ? Colors.white : navColor,
+                size: 24,
               ),
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 300),
               style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
-                fontSize: 12,
+                color: isSelected ? Colors.white : navColor,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
-              child: Text(label),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
