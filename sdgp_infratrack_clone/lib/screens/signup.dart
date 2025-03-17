@@ -1,16 +1,95 @@
 import 'package:flutter/material.dart';
+import 'package:infratrack/services/signup_services.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  bool _obscurePassword = true; // Controls visibility of the Password field
-  bool _obscureConfirmPassword = true; // Controls visibility of the Confirm Password field
+  // Password visibility toggles
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
+  // Controllers for each piece of user info
+  final TextEditingController _idNumberController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  bool _isLoading = false; // Show loading spinner while signing up
+
+  @override
+  void dispose() {
+    // Dispose controllers to free resources when screen is removed
+    _idNumberController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _mobileNumberController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signUp() async {
+    // Optional: check if password and confirmPassword match
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match.")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Call the service method
+      final response = await SignUpServices.registerUser(
+        idNumber: _idNumberController.text.trim(),
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: password,
+        mobileNumber: _mobileNumberController.text.trim(),
+      );
+
+      // On success
+      debugPrint('Registration successful: $response');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful!')),
+      );
+
+      // Navigate the user to the Login screen
+      Navigator.pushReplacementNamed(context, "/login");
+
+    } catch (error) {
+      // If there's an error, show it
+      debugPrint('Registration error: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration failed: $error')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // The rest of your UI code
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,12 +109,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo Section
+              // Logo
               Padding(
                 padding: const EdgeInsets.only(top: 50.0),
                 child: Image.asset('assets/png/logo.png', height: 200),
               ),
               const SizedBox(height: 20),
+
               // Sign Up Container
               Container(
                 margin: const EdgeInsets.only(top: 20),
@@ -56,29 +136,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Input Fields with prefix icons
-                    _buildInputField("Enter Your National Identity Card Number"),
-                    _buildInputField("Enter Your First Name"),
-                    _buildInputField("Enter Your Last Name"),
-                    _buildInputField("Enter Your Username"),
-                    _buildInputField("Enter Your Email Address"),
-                    _buildInputField("Enter Your Mobile Number"),
-                    _buildPasswordField("Password", _obscurePassword, () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    }),
-                    _buildPasswordField("Confirm Password", _obscureConfirmPassword, () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    }),
+
+                    _buildInputField(
+                      hint: "Enter Your National Identity Card Number",
+                      controller: _idNumberController,
+                    ),
+                    _buildInputField(
+                      hint: "Enter Your First Name",
+                      controller: _firstNameController,
+                    ),
+                    _buildInputField(
+                      hint: "Enter Your Last Name",
+                      controller: _lastNameController,
+                    ),
+                    _buildInputField(
+                      hint: "Enter Your Username",
+                      controller: _usernameController,
+                    ),
+                    _buildInputField(
+                      hint: "Enter Your Email Address",
+                      controller: _emailController,
+                    ),
+                    _buildInputField(
+                      hint: "Enter Your Mobile Number",
+                      controller: _mobileNumberController,
+                    ),
+                    _buildPasswordField(
+                      hint: "Password",
+                      obscureText: _obscurePassword,
+                      toggleVisibility: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      controller: _passwordController,
+                    ),
+                    _buildPasswordField(
+                      hint: "Confirm Password",
+                      obscureText: _obscureConfirmPassword,
+                      toggleVisibility: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                      controller: _confirmPasswordController,
+                    ),
                     const SizedBox(height: 10),
+
                     // Sign Up Button
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/home');
-                      },
+                      onPressed: _isLoading ? null : _signUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
@@ -86,10 +193,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text(
-                        "Sign Up",
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              "Sign Up",
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
                     ),
                   ],
                 ),
@@ -101,11 +217,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper Function for Regular Input Fields with Prefix Icons
-  Widget _buildInputField(String hint) {
+  // Reusable Input Field
+  Widget _buildInputField({
+    required String hint,
+    required TextEditingController controller,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           prefixIcon: _getPrefixIcon(hint),
           filled: true,
@@ -122,11 +242,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper Function for Password Fields with Visibility Toggle and Prefix Icon
-  Widget _buildPasswordField(String hint, bool obscureText, VoidCallback toggleVisibility) {
+  // Reusable Password Field
+  Widget _buildPasswordField({
+    required String hint,
+    required bool obscureText,
+    required VoidCallback toggleVisibility,
+    required TextEditingController controller,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
           prefixIcon: const Icon(Icons.lock, color: Colors.white70),
@@ -151,7 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper function to choose prefix icons based on the hint text.
+  // Helper function to choose prefix icons based on hint text (optional).
   Icon _getPrefixIcon(String hint) {
     final lowerHint = hint.toLowerCase();
     if (lowerHint.contains("national identity")) {
