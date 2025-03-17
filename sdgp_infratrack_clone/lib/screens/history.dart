@@ -1,43 +1,42 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:infratrack/components/bottom_navigation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:infratrack/model/history_report_model.dart';
+import 'package:infratrack/services/history_services.dart';
+import '../components/bottom_navigation.dart'; // Your BottomNavigation widget
 
-class HistoryScreen extends StatelessWidget {
-  final List<Map<String, String>> reportedProblems = [
-    {
-      "title": "Pothole in Nugegoda",
-      "id": "CP123456",
-      "priority": "High Priority",
-      "status": "In-Progress",
-      "priorityColor": "0xFFFF6B6B",
-      "statusColor": "0xFFFDBE56",
-    },
-    {
-      "title": "Overgrown Tree in Malabe",
-      "id": "CP123487",
-      "priority": "Medium Priority",
-      "status": "Completed",
-      "priorityColor": "0xFFFEDC56",
-      "statusColor": "0xFF6BCB77",
-    },
-    {
-      "title": "Pothole in Kollupitiya",
-      "id": "CP123489",
-      "priority": "High Priority",
-      "status": "In-Progress",
-      "priorityColor": "0xFFFF6B6B",
-      "statusColor": "0xFFFDBE56",
-    },
-    {
-      "title": "Pothole in Bambalapitiya",
-      "id": "CP1234675",
-      "priority": "Low Priority",
-      "status": "Completed",
-      "priorityColor": "0xFFFEDC56",
-      "statusColor": "0xFF6BCB77",
-    },
-  ];
+class HistoryScreen extends StatefulWidget {
+  const HistoryScreen({super.key});
 
-  HistoryScreen({super.key});
+  @override
+  _HistoryScreenState createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  Future<List<HistoryReportModel>>? _userReports;
+  String? _token;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTokenAndFetchReports();
+  }
+
+  /// Loads the Bearer token from SharedPreferences and fetches the user reports.
+  Future<void> _loadTokenAndFetchReports() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null || token.isEmpty) {
+      Navigator.pushReplacementNamed(context, "/login");
+      return;
+    }
+
+    setState(() {
+      _token = token;
+      _userReports = HistoryServices.getUserReports(_token!);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +53,7 @@ class HistoryScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.account_circle, color: Colors.black, size: 28),
+            icon: const Icon(Icons.account_circle, color: Colors.black, size: 28),
             onPressed: () {
               Navigator.pushReplacementNamed(context, "/profile");
             },
@@ -79,32 +77,47 @@ class HistoryScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: reportedProblems.length,
-                itemBuilder: (context, index) {
-                  final problem = reportedProblems[index];
-                  return _buildProblemCard(context, problem);
-                },
-              ),
+              child: _userReports == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : FutureBuilder<List<HistoryReportModel>>(
+                      future: _userReports,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text('No reported problems found.'));
+                        } else {
+                          final reports = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: reports.length,
+                            itemBuilder: (context, index) {
+                              final report = reports[index];
+                              return _buildProblemCard(context, report);
+                            },
+                          );
+                        }
+                      },
+                    ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigation(
-        // Set the selectedIndex to 1 for the History page
-        selectedIndex: 1,
+        selectedIndex: 1, // History page index
         onItemTapped: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, "/home");
           } else if (index == 1) {
-            // Already on History page, no action needed.
+            // Already on History page.
           }
         },
       ),
     );
   }
 
-  Widget _buildProblemCard(BuildContext context, Map<String, String> problem) {
+  Widget _buildProblemCard(BuildContext context, HistoryReportModel report) {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(
@@ -122,8 +135,9 @@ class HistoryScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Display report type as title.
               Text(
-                problem["title"] ?? "",
+                report.reportType,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -131,25 +145,30 @@ class HistoryScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
+              // Display report ID.
               Text(
-                problem["id"] ?? "",
+                "ID: ${report.id}",
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.white60,
                 ),
               ),
               const SizedBox(height: 8),
+              // Display description.
+              Text(
+                report.description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Display status and priority as tags.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildTag(
-                    problem["priority"] ?? "",
-                    Color(int.parse(problem["priorityColor"]!)),
-                  ),
-                  _buildTag(
-                    problem["status"] ?? "",
-                    Color(int.parse(problem["statusColor"]!)),
-                  ),
+                  _buildTag(report.priorityLevel, const Color(0xFFFF6B6B)),
+                  _buildTag(report.status, const Color(0xFFFDBE56)),
                   const Icon(Icons.arrow_forward_ios, color: Colors.white),
                 ],
               ),

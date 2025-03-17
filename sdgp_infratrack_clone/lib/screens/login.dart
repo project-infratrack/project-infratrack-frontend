@@ -1,14 +1,24 @@
+// lib/screens/login_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:infratrack/services/login_services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscureText = true; // Toggles password visibility
+
+  // Controllers to capture user input
+  final TextEditingController _idNumberController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  /// Optional: a loading indicator to display while the login request is in flight
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo
+              // Logo (adjust image asset as needed)
               Padding(
                 padding: const EdgeInsets.only(top: 50.0),
                 child: Column(
@@ -54,14 +64,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 50),
 
-                      // Username Field (Improved)
+                      // ID Number Field
                       TextField(
+                        controller: _idNumberController,
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.person, color: Colors.white70),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                           filled: true,
                           fillColor: const Color(0xFF2C3E50),
-                          hintText: "Username",
+                          hintText: "NIC Number",
                           hintStyle: const TextStyle(color: Colors.white70),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -69,19 +81,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.white, width: 2),
+                            borderSide:
+                                const BorderSide(color: Colors.white, width: 2),
                           ),
                         ),
                         style: const TextStyle(color: Colors.white),
                       ),
                       const SizedBox(height: 25),
 
-                      // Password Field with Visibility Toggle (Improved)
+                      // Password Field with Visibility Toggle
                       TextField(
+                        controller: _passwordController,
                         obscureText: _obscureText,
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.lock, color: Colors.white70),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                           filled: true,
                           fillColor: const Color(0xFF2C3E50),
                           hintText: "Password",
@@ -92,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.white, width: 2),
+                            borderSide:
+                                const BorderSide(color: Colors.white, width: 2),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -118,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.pushNamed(context, "/recover_password");
                           },
                           child: const Text(
-                            "Forgot password ?",
+                            "Forgot password?",
                             style: TextStyle(color: Colors.black, fontSize: 14),
                           ),
                         ),
@@ -127,20 +143,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Login Button
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, "/home");
-                        },
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        child: const Text(
-                          "Log in",
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                "Log in",
+                                style: TextStyle(fontSize: 18, color: Colors.white),
+                              ),
                       ),
                       const SizedBox(height: 20),
 
@@ -175,5 +199,31 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  /// This method is called when the Login button is pressed
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
+    final idNumber = _idNumberController.text.trim();
+    final password = _passwordController.text.trim();
+
+    try {
+      final response = await LoginServices.userLogin(idNumber, password);
+      // Handle the response (save tokens, navigate, etc.)
+      debugPrint('Login successful. Response: $response');
+      Navigator.pushNamed(context, "/home");
+    } catch (error) {
+      debugPrint('Login error: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login failed: invalid credentials')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
+    }
   }
 }

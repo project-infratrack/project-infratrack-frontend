@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../components/bottom_navigation.dart'; // Import the navigation bar
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:infratrack/model/report_model.dart';
+import 'package:infratrack/services/home_services.dart';
+import '../components/bottom_navigation.dart'; // Your BottomNavigation widget
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,7 +14,34 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  bool _isDarkMode = false; // State variable for dark mode toggle
+  bool _isDarkMode = false; // Dark mode toggle
+
+  // _reportFuture is nullable until token is loaded and reports are fetched.
+  Future<List<ReportModel>>? _reportFuture;
+  String? _token; // Stores the extracted token
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTokenAndFetchReports();
+  }
+
+  /// Loads the token from SharedPreferences and then fetches reports.
+  Future<void> _loadTokenAndFetchReports() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null || token.isEmpty) {
+      // If no token is stored, navigate to the login screen.
+      Navigator.pushReplacementNamed(context, "/login");
+      return;
+    }
+
+    setState(() {
+      _token = token;
+      _reportFuture = HomeServices.getAllReports(_token!);
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -21,19 +52,18 @@ class HomeScreenState extends State<HomeScreen> {
     } else if (index == 1) {
       Navigator.pushReplacementNamed(context, "/history");
     }
-    // Add more navigation destinations as needed.
+    // Add more navigation destinations if needed.
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Home page background remains white.
-      // Drawer for menu options.
+      backgroundColor: Colors.white, // Home background remains white.
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // Drawer header with your original dark color.
+            // Drawer header with dark background.
             DrawerHeader(
               decoration: const BoxDecoration(
                 color: Color(0xFF2C3E50),
@@ -57,7 +87,7 @@ class HomeScreenState extends State<HomeScreen> {
                 onChanged: (bool value) {
                   setState(() {
                     _isDarkMode = value;
-                    // TODO: Integrate your dark mode logic here.
+                    // TODO: Implement your dark mode logic.
                   });
                 },
               ),
@@ -75,8 +105,9 @@ class HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Logout"),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer.
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('auth_token'); // Remove stored token.
                 Navigator.pushReplacementNamed(context, "/login");
               },
             ),
@@ -95,7 +126,7 @@ class HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // Use a Builder to get a proper context for opening the drawer.
+        // Use a Builder to obtain proper context for opening the drawer.
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(
@@ -123,7 +154,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // Redesigned header area with a light gradient, drop shadow, and animation.
+          // Header area with gradient and logo.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -146,56 +177,49 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ),
             child: Center(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutBack,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: child,
-                  );
-                },
-                child: Image.asset(
-                  'assets/png/logo2.png',
-                  height: 150,
-                ),
+              child: Image.asset(
+                'assets/png/logo2.png',
+                height: 150,
               ),
             ),
           ),
           const SizedBox(height: 10),
           // Expanded List of Issue Cards.
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              children: const [
-                IssueCard(
-                  title: "Pothole in Nugegoda",
-                  description:
-                      "A blocked drainage system in Kohuwala is leading to waterlogging during rains.",
-                  initialLikes: 10,
-                  initialDislikes: 2,
-                ),
-                IssueCard(
-                  title: "Overgrown Tree",
-                  description:
-                      "The tree is obstructing the road and needs trimming for safety.",
-                  initialLikes: 15,
-                  initialDislikes: 1,
-                ),
-                IssueCard(
-                  title: "Broken Streetlight",
-                  description:
-                      "The streetlight near the main square is not functioning, creating safety concerns.",
-                  initialLikes: 8,
-                  initialDislikes: 0,
-                ),
-              ],
-            ),
+            child: _reportFuture == null
+                ? const Center(child: CircularProgressIndicator())
+                : FutureBuilder<List<ReportModel>>(
+                    future: _reportFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No reports found.'));
+                      } else {
+                        final reports = snapshot.data!;
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          itemCount: reports.length,
+                          itemBuilder: (context, index) {
+                            final report = reports[index];
+                            return IssueCard(
+                              report: report,
+                              token: _token!, // Pass the extracted token.
+                              onRefresh: _loadTokenAndFetchReports, // Refresh callback.
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
           ),
         ],
       ),
-      // Bottom Navigation Bar.
       bottomNavigationBar: BottomNavigation(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
@@ -204,21 +228,19 @@ class HomeScreenState extends State<HomeScreen> {
   }
 }
 
-//-------------------
-// IssueCard Widget with onTap navigating to "/issue_nearby"
-//-------------------
+//---------------------------------
+// Updated IssueCard Widget accepting token and a refresh callback.
+//---------------------------------
 class IssueCard extends StatefulWidget {
-  final String title;
-  final String description;
-  final int initialLikes;
-  final int initialDislikes;
+  final ReportModel report;
+  final String token;
+  final VoidCallback onRefresh;
 
   const IssueCard({
     super.key,
-    required this.title,
-    required this.description,
-    required this.initialLikes,
-    required this.initialDislikes,
+    required this.report,
+    required this.token,
+    required this.onRefresh,
   });
 
   @override
@@ -234,11 +256,11 @@ class _IssueCardState extends State<IssueCard> {
   @override
   void initState() {
     super.initState();
-    likes = widget.initialLikes;
-    dislikes = widget.initialDislikes;
+    likes = widget.report.thumbsUp;
+    dislikes = widget.report.thumbsDown;
   }
 
-  void _toggleLike() {
+  Future<void> _toggleLike() async {
     setState(() {
       if (isLiked) {
         likes--;
@@ -252,9 +274,37 @@ class _IssueCardState extends State<IssueCard> {
         }
       }
     });
+
+    try {
+      if (isLiked) {
+        await HomeServices.thumbsUp(widget.report.id, widget.token);
+      } else {
+        await HomeServices.removeThumbsUp(widget.report.id, widget.token);
+      }
+      // Refresh the HomeScreen after successful update.
+      widget.onRefresh();
+    } catch (error) {
+      setState(() {
+        // Revert UI changes if API call fails.
+        if (isLiked) {
+          likes--;
+          isLiked = false;
+        } else {
+          likes++;
+          isLiked = true;
+          if (isDisliked) {
+            dislikes--;
+            isDisliked = false;
+          }
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    }
   }
 
-  void _toggleDislike() {
+  Future<void> _toggleDislike() async {
     setState(() {
       if (isDisliked) {
         dislikes--;
@@ -268,6 +318,34 @@ class _IssueCardState extends State<IssueCard> {
         }
       }
     });
+
+    try {
+      if (isDisliked) {
+        await HomeServices.thumbsDown(widget.report.id, widget.token);
+      } else {
+        await HomeServices.removeThumbsDown(widget.report.id, widget.token);
+      }
+      // Refresh the HomeScreen after successful update.
+      widget.onRefresh();
+    } catch (error) {
+      setState(() {
+        // Revert UI changes if API call fails.
+        if (isDisliked) {
+          dislikes--;
+          isDisliked = false;
+        } else {
+          dislikes++;
+          isDisliked = true;
+          if (isLiked) {
+            likes--;
+            isLiked = false;
+          }
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    }
   }
 
   @override
@@ -308,9 +386,8 @@ class _IssueCardState extends State<IssueCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title.
                       Text(
-                        widget.title,
+                        widget.report.reportType,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -318,9 +395,8 @@ class _IssueCardState extends State<IssueCard> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Description.
                       Text(
-                        widget.description,
+                        widget.report.description,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -332,6 +408,7 @@ class _IssueCardState extends State<IssueCard> {
                 const SizedBox(width: 16),
                 // Like and Dislike Buttons Column.
                 Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
                       onTap: _toggleLike,
