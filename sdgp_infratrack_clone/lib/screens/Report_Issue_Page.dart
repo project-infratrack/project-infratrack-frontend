@@ -1,20 +1,24 @@
 import 'dart:io';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
+import 'package:infratrack/components/map_picker_popup.dart';
+import 'package:infratrack/services/report_issue_services.dart';
 
 class ReportIssueScreen extends StatefulWidget {
   const ReportIssueScreen({super.key});
 
   @override
-  _ReportIssueScreenState createState() => _ReportIssueScreenState();
+  State<ReportIssueScreen> createState() => _ReportIssueScreenState();
 }
 
 class _ReportIssueScreenState extends State<ReportIssueScreen> {
   String selectedIssue = "Choose Issue Type";
   final List<String> issueTypes = [
-    "Potholes",
+    "Pothole",
     "Overgrown trees",
     "Broken street lights",
   ];
@@ -23,7 +27,11 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
+  // Initially set the default location.
+  LatLng _selectedLocation = const LatLng(34.0522, -118.2437);
+  bool _locationSelected = false; // Flag to track if a location was selected
+
+  Future<void> _pickImageFromGallery() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
@@ -32,88 +40,46 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
+  Future<void> _pickImageFromCamera() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // Gradient background for a modern look
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFE6F1FA), Color(0xFFD0E9F7)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent, // Show the gradient
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromGallery();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromCamera();
+                },
+              ),
+            ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.account_circle,
-                  color: Colors.black, size: 28),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, "/profile");
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                const Text(
-                  "Report an issue",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 25),
-                _buildDropdownButton(),
-                const SizedBox(height: 16),
-                _buildTextField(),
-                const SizedBox(height: 16),
-                _buildUploadImageButton(),
-                const SizedBox(height: 16),
-                _buildMapPlaceholder(),
-                const SizedBox(height: 16),
-                _buildReportButton(),
-              ],
-            ),
-          ),
-        ),
-        bottomNavigationBar: BottomNavigation(
-          selectedIndex: 2,
-          onItemTapped: (index) {
-            if (index == 0) {
-              Navigator.pushReplacementNamed(context, "/home");
-            } else if (index == 1) {
-              Navigator.pushReplacementNamed(context, "/history");
-            }
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 
+  // Dropdown button for issue type.
   Widget _buildDropdownButton() {
     return Container(
       width: double.infinity,
@@ -132,13 +98,11 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           items: [
             const DropdownMenuItem(
               value: "Choose Issue Type",
-              child: Text("Choose Issue Type",
-                  style: TextStyle(color: Colors.white)),
+              child: Text("Choose Issue Type", style: TextStyle(color: Colors.white)),
             ),
             ...issueTypes.map((issue) => DropdownMenuItem(
                   value: issue,
-                  child:
-                      Text(issue, style: const TextStyle(color: Colors.white)),
+                  child: Text(issue, style: const TextStyle(color: Colors.white)),
                 )),
           ],
           onChanged: (value) {
@@ -151,6 +115,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
+  // Multi-line text field for issue description.
   Widget _buildTextField() {
     return Container(
       width: double.infinity,
@@ -172,9 +137,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
+  // Upload image button with a bottom sheet to choose the image source.
   Widget _buildUploadImageButton() {
     return InkWell(
-      onTap: _pickImage,
+      onTap: _showImageSourceActionSheet,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: double.infinity,
@@ -205,18 +171,42 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  Widget _buildMapPlaceholder() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.asset(
-        'assets/png/map_placeholder.png',
-        height: 180,
-        width: double.infinity,
-        fit: BoxFit.cover,
+  // Button to open the MapPickerPopup.
+  Widget _buildMapSelector() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _locationSelected ? Colors.green : Colors.blue,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        onPressed: () async {
+          final LatLng? pickedLocation = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapPickerPopup(
+                initialLocation: _selectedLocation,
+              ),
+            ),
+          );
+          if (pickedLocation != null) {
+            setState(() {
+              _selectedLocation = pickedLocation;
+              _locationSelected = true;
+            });
+          }
+        },
+        icon: const Icon(Icons.location_on),
+        label: Text(
+          _locationSelected ? "Location Selected" : "Select Location",
+          style: const TextStyle(fontSize: 16),
+        ),
       ),
     );
   }
 
+  // Report submission button.
   Widget _buildReportButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -226,12 +216,141 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
       ),
-      onPressed: () {
-        // Handle report submission
-      },
+      onPressed: _submitReport,
       child: const Text(
         "Report Issue",
         style: TextStyle(color: Colors.white, fontSize: 16),
+      ),
+    );
+  }
+
+  // This method gathers all report data and submits it to the backend.
+  Future<void> _submitReport() async {
+    // Retrieve token and userId from SharedPreferences.
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? "";
+    final userDataString = prefs.getString('user_data') ?? "{}";
+    final userData = jsonDecode(userDataString);
+    final userId = userData["userId"] ?? "unknown";
+
+    // Convert image to Base64 if an image is selected.
+    String imageBase64 = "";
+    if (_selectedImage != null) {
+      final bytes = await _selectedImage!.readAsBytes();
+      imageBase64 = base64Encode(bytes);
+    }
+
+    // Prepare location string.
+    final latitudeStr = _selectedLocation.latitude.toString();
+    final longitudeStr = _selectedLocation.longitude.toString();
+    final locationStr = "Lat: $latitudeStr, Lng: $longitudeStr";
+
+    // Debug prints.
+    print("Issue: $selectedIssue");
+    print("Description: ${_descriptionController.text}");
+    print("Latitude: $latitudeStr, Longitude: $longitudeStr");
+    print("Image: $imageBase64");
+
+    try {
+      final result = await ReportIssueServices.submitReport(
+        userId: userId,
+        reportType: selectedIssue,
+        description: _descriptionController.text,
+        location: locationStr,
+        image: imageBase64,
+        latitude: _selectedLocation.latitude,
+        longitude: _selectedLocation.longitude,
+        priorityLevel: "Pending",
+        thumbsUp: 0,
+        thumbsDown: 0,
+        thumbsUpUsers: [],
+        thumbsDownUsers: [],
+        token: token,
+      );
+      print("Report submitted: $result");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Report submitted successfully")),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      print("Error submitting report: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error submitting report: $error")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // Gradient background.
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFE6F1FA), Color(0xFFD0E9F7)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle, color: Colors.black, size: 28),
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, "/profile");
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+                const Text(
+                  "Report an issue",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 25),
+                _buildDropdownButton(),
+                const SizedBox(height: 16),
+                _buildTextField(),
+                const SizedBox(height: 16),
+                _buildUploadImageButton(),
+                const SizedBox(height: 16),
+                _buildMapSelector(),
+                const SizedBox(height: 16),
+                _buildReportButton(),
+              ],
+            ),
+          ),
+        ),
+        bottomNavigationBar: BottomNavigation(
+          selectedIndex: 2,
+          onItemTapped: (index) {
+            if (index == 0) {
+              Navigator.pushReplacementNamed(context, "/home");
+            } else if (index == 1) {
+              Navigator.pushReplacementNamed(context, "/history");
+            }
+          },
+        ),
       ),
     );
   }
