@@ -29,7 +29,6 @@ flutter:
   assets:
     - assets/png/logo.png
     - assets/png/logo2.png
-    - assets/png/profile01.png
     - assets/png/icon.png
     - assets/png/map_placeholder.png
     - assets/png/pothole.png

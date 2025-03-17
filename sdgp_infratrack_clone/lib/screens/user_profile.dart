@@ -44,39 +44,21 @@ class UserProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header area with a curved background.
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                ClipPath(
-                  clipper: HeaderClipper(),
-                  child: Container(
-                    height: 200,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF2C3E50), Color(0xFF2C3E50)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
+            // Header area with a curved background (no more CircleAvatar).
+            ClipPath(
+              clipper: HeaderClipper(),
+              child: Container(
+                height: 150, // Reduced height slightly
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF2C3E50), Color(0xFF2C3E50)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
-                // Profile picture overlapping the header.
-                const Positioned(
-                  bottom: -60,
-                  child: CircleAvatar(
-                    radius: 70,
-                    backgroundColor: Colors.white,
-                    child: CircleAvatar(
-                      radius: 65,
-                      backgroundImage: AssetImage("assets/png/profile01.png"),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 20),
             // Greeting/Username.
             const Text(
               "Hey, Sara!",
@@ -161,10 +143,10 @@ class HeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     var path = Path();
     // Start at top left.
-    path.lineTo(0, size.height - 50);
+    path.lineTo(0, size.height - 40);
     // Draw a quadratic curve for a smooth curve.
     var firstControlPoint = Offset(size.width / 2, size.height);
-    var firstEndPoint = Offset(size.width, size.height - 50);
+    var firstEndPoint = Offset(size.width, size.height - 40);
     path.quadraticBezierTo(
       firstControlPoint.dx,
       firstControlPoint.dy,
@@ -181,7 +163,6 @@ class HeaderClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// Improved InfoRow widget with a modern, card-like design.
 class InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -201,7 +182,7 @@ class InfoRow extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.white, Colors.grey.shade200],
+          colors: [Colors.white, Colors.grey],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
