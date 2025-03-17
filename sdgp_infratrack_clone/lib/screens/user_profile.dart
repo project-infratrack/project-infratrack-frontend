@@ -1,7 +1,41 @@
+// lib/screens/user_profile_screen.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:infratrack/model/user_profile_model.dart';
+import 'package:infratrack/services/user_profile_services.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
+
+  @override
+  _UserProfileScreenState createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  Future<UserProfile>? _profileFuture;
+  String? _token;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTokenAndFetchProfile();
+  }
+
+  /// Loads the token from SharedPreferences and fetches the user profile.
+  Future<void> _loadTokenAndFetchProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null || token.isEmpty) {
+      Navigator.pushReplacementNamed(context, "/login");
+      return;
+    }
+
+    setState(() {
+      _token = token;
+      _profileFuture = UserProfileServices.getUserProfile(_token!);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,17 +56,13 @@ class UserProfileScreen extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.account_circle, // Standard profile icon.
-                  color: Colors.black,
-                  size: 36, // Increased icon size.
-                ),
+                Icon(Icons.account_circle, color: Colors.black, size: 36),
                 SizedBox(width: 10),
                 Text(
                   "Profile",
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 20, // Increased text size.
+                    fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -41,97 +71,116 @@ class UserProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header area with a curved background (no more CircleAvatar).
-            ClipPath(
-              clipper: HeaderClipper(),
-              child: Container(
-                height: 150, // Reduced height slightly
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF2C3E50), Color(0xFF2C3E50)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      body: FutureBuilder<UserProfile>(
+        future: _profileFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('No profile data found.'));
+          } else {
+            final profile = snapshot.data!;
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Header area with curved background.
+                  ClipPath(
+                    clipper: HeaderClipper(),
+                    child: Container(
+                      height: 150,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF2C3E50), Color(0xFF2C3E50)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Greeting/Username.
-            const Text(
-              "Hey, Sara!",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
-            // User Information Card.
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      InfoRow(
-                        icon: Icons.person,
-                        label: "Name",
-                        value: "Sara Pinto Sampaio",
-                      ),
-                      SizedBox(height: 10),
-                      InfoRow(
-                        icon: Icons.credit_card,
-                        label: "NIC / EIC",
-                        value: "199833900024",
-                      ),
-                      SizedBox(height: 10),
-                      InfoRow(
-                        icon: Icons.email,
-                        label: "Email",
-                        value: "sara.pinto@gmail.com",
-                      ),
-                      SizedBox(height: 10),
-                      InfoRow(
-                        icon: Icons.phone,
-                        label: "Mobile",
-                        value: "+94 771234567",
-                      ),
-                    ],
+                  const SizedBox(height: 20),
+                  // Greeting using the user's name.
+                  Text(
+                    "Hey, ${profile.name}!",
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  // User Information Card.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            InfoRow(
+                              icon: Icons.person,
+                              label: "Name",
+                              value: profile.name,
+                            ),
+                            const SizedBox(height: 10),
+                            InfoRow(
+                              icon: Icons.credit_card,
+                              label: "NIC / EIC",
+                              value: profile.idNumber,
+                            ),
+                            const SizedBox(height: 10),
+                            InfoRow(
+                              icon: Icons.account_circle,
+                              label: "Username",
+                              value: profile.username,
+                            ),
+                            const SizedBox(height: 10),
+                            InfoRow(
+                              icon: Icons.email,
+                              label: "Email",
+                              value: profile.email,
+                            ),
+                            const SizedBox(height: 10),
+                            InfoRow(
+                              icon: Icons.phone,
+                              label: "Mobile",
+                              value: profile.mobileNo,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Logout Button.
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, "/login");
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    label: const Text(
+                      "Log Out",
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            // Logout Button.
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, "/login");
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              icon: const Icon(Icons.logout, color: Colors.white),
-              label: const Text(
-                "Log Out",
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 30),
-          ],
-        ),
+            );
+          }
+        },
       ),
     );
   }
@@ -167,7 +216,6 @@ class InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-
   const InfoRow({
     super.key,
     required this.icon,
@@ -181,7 +229,7 @@ class InfoRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [Colors.white, Colors.grey],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
