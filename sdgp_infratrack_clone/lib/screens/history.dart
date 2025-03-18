@@ -76,30 +76,66 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            // Wrap the list with RefreshIndicator for pull-to-refresh functionality.
             Expanded(
-              child: _userReports == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : FutureBuilder<List<HistoryReportModel>>(
-                      future: _userReports,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Center(child: Text('No reported problems found.'));
-                        } else {
-                          final reports = snapshot.data!;
-                          return ListView.builder(
-                            itemCount: reports.length,
-                            itemBuilder: (context, index) {
-                              final report = reports[index];
-                              return _buildProblemCard(context, report);
-                            },
-                          );
-                        }
-                      },
-                    ),
+              child: RefreshIndicator(
+                onRefresh: _loadTokenAndFetchReports,
+                child: _userReports == null
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(
+                            height: 200,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        ],
+                      )
+                    : FutureBuilder<List<HistoryReportModel>>(
+                        future: _userReports,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: const [
+                                SizedBox(
+                                  height: 200,
+                                  child: Center(child: CircularProgressIndicator()),
+                                )
+                              ],
+                            );
+                          } else if (snapshot.hasError) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height: 200,
+                                  child: Center(child: Text('Error: ${snapshot.error}')),
+                                )
+                              ],
+                            );
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: const [
+                                SizedBox(
+                                  height: 200,
+                                  child: Center(child: Text('No reported problems found.')),
+                                )
+                              ],
+                            );
+                          } else {
+                            final reports = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: reports.length,
+                              itemBuilder: (context, index) {
+                                final report = reports[index];
+                                return _buildProblemCard(context, report);
+                              },
+                            );
+                          }
+                        },
+                      ),
+              ),
             ),
           ],
         ),
