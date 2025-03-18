@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -137,7 +137,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  // Upload image button with a bottom sheet to choose the image source.
+  // Upload image button with bottom sheet to choose image source.
   Widget _buildUploadImageButton() {
     return InkWell(
       onTap: _showImageSourceActionSheet,
@@ -224,7 +224,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  // This method gathers all report data and submits it to the backend.
+  // Gather all data and submit the report as form-data.
   Future<void> _submitReport() async {
     // Retrieve token and userId from SharedPreferences.
     final prefs = await SharedPreferences.getInstance();
@@ -233,11 +233,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     final userData = jsonDecode(userDataString);
     final userId = userData["userId"] ?? "unknown";
 
-    // Convert image to Base64 if an image is selected.
-    String imageBase64 = "";
+    // For form-data submission, we now pass the image file path.
+    String imagePath = "";
     if (_selectedImage != null) {
-      final bytes = await _selectedImage!.readAsBytes();
-      imageBase64 = base64Encode(bytes);
+      imagePath = _selectedImage!.path;
     }
 
     // Prepare location string.
@@ -249,7 +248,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     print("Issue: $selectedIssue");
     print("Description: ${_descriptionController.text}");
     print("Latitude: $latitudeStr, Longitude: $longitudeStr");
-    print("Image: $imageBase64");
+    print("Image Path: $imagePath");
 
     try {
       final result = await ReportIssueServices.submitReport(
@@ -257,7 +256,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         reportType: selectedIssue,
         description: _descriptionController.text,
         location: locationStr,
-        image: imageBase64,
+        image: imagePath, // Pass file path for form-data.
         latitude: _selectedLocation.latitude,
         longitude: _selectedLocation.longitude,
         priorityLevel: "Pending",
