@@ -1,8 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import '../services/password_recovery_services.dart';
 
-class RecoverPasswordOtpScreen extends StatelessWidget {
+class RecoverPasswordOtpScreen extends StatefulWidget {
   const RecoverPasswordOtpScreen({super.key});
+
+  @override
+  State<RecoverPasswordOtpScreen> createState() =>
+      _RecoverPasswordOtpScreenState();
+}
+
+class _RecoverPasswordOtpScreenState extends State<RecoverPasswordOtpScreen> {
+  String? idNumber;
+  String enteredOtp = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      idNumber = args['idNumber'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,24 +94,57 @@ class RecoverPasswordOtpScreen extends StatelessWidget {
                     focusedBorderColor: Colors.black,
                     cursorColor: Colors.white,
                     fieldWidth: 50,
-                    textStyle: const TextStyle(fontSize: 20, color: Colors.white),
+                    textStyle:
+                        const TextStyle(fontSize: 20, color: Colors.white),
                     fillColor: const Color(0xFF2C3E50),
                     filled: true,
                     borderRadius: BorderRadius.circular(10),
                     showFieldAsBox: true,
+                    onSubmit: (value) {
+                      enteredOtp = value;
+                    },
                   ),
 
                   const SizedBox(height: 20),
 
                   // Create New Password Button
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/reset_password');
-                      // Navigate to reset password screen
+                    onPressed: () async {
+                      if (enteredOtp.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter the OTP")),
+                        );
+                        return;
+                      }
+
+                      if (idNumber == null) {
+                        Navigator.pushNamed(context, '/reset_password');
+                        return;
+                      }
+
+                      String? token = await PasswordRecoveryServices.verifyOtp(
+                          idNumber!, enteredOtp);
+
+                      if (token != null) {
+                        Navigator.pushNamed(
+                          context,
+                          '/reset_password',
+                          arguments: {
+                            'idNumber': idNumber,
+                            'token': token,
+                          },
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Invalid OTP. Please try again.")),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 50, vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
@@ -113,8 +166,14 @@ class RecoverPasswordOtpScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.black54),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          // Resend OTP action
+                        onTap: () async {
+                          if (idNumber != null) {
+                            await PasswordRecoveryServices.requestPasswordReset(
+                                idNumber!);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("OTP resent")),
+                            );
+                          }
                         },
                         child: const Text(
                           "Resend",
