@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infratrack/model/report_model.dart';
 import 'package:infratrack/services/home_services.dart';
-import '../components/bottom_navigation.dart'; // Your BottomNavigation widget
+import 'package:infratrack/components/bottom_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,7 +14,6 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  // Removed dark mode option.
   Future<List<ReportModel>>? _reportFuture;
   String? _token; // Stores the extracted token
 
@@ -56,7 +55,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Home background remains white.
+      backgroundColor: Colors.white, // Home page background remains white.
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -110,7 +109,6 @@ class HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // Use a Builder to obtain proper context for opening the drawer.
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(
@@ -138,7 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // Logo Area without the blue circular border.
+          // Header area with a gradient and logo.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -161,9 +159,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Display the logo as it was originally.
                 Image.asset(
                   'assets/png/logo2.png',
                   height: 150,
@@ -181,11 +177,10 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          // Expanded List of Issue Cards wrapped in a RefreshIndicator.
+          // Expanded List of Issue Cards in a RefreshIndicator.
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadTokenAndFetchReports,
-              // Use AlwaysScrollableScrollPhysics so pull-to-refresh works even when content is less.
               child: _reportFuture == null
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -193,7 +188,7 @@ class HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           height: 200,
                           child: Center(child: CircularProgressIndicator()),
-                        )
+                        ),
                       ],
                     )
                   : FutureBuilder<List<ReportModel>>(
@@ -206,7 +201,7 @@ class HomeScreenState extends State<HomeScreen> {
                               SizedBox(
                                 height: 200,
                                 child: Center(child: CircularProgressIndicator()),
-                              )
+                              ),
                             ],
                           );
                         } else if (snapshot.hasError) {
@@ -215,8 +210,10 @@ class HomeScreenState extends State<HomeScreen> {
                             children: [
                               SizedBox(
                                 height: 200,
-                                child: Center(child: Text('Error: ${snapshot.error}')),
-                              )
+                                child: Center(
+                                  child: Text('Error: ${snapshot.error}'),
+                                ),
+                              ),
                             ],
                           );
                         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -226,7 +223,7 @@ class HomeScreenState extends State<HomeScreen> {
                               SizedBox(
                                 height: 200,
                                 child: Center(child: Text('No reports found.')),
-                              )
+                              ),
                             ],
                           );
                         } else {
@@ -242,7 +239,7 @@ class HomeScreenState extends State<HomeScreen> {
                               return IssueCard(
                                 report: report,
                                 token: _token!, // Pass the extracted token.
-                                onRefresh: _loadTokenAndFetchReports, // Refresh callback.
+                                onRefresh: _loadTokenAndFetchReports, // Callback to refresh
                               );
                             },
                           );
@@ -262,7 +259,7 @@ class HomeScreenState extends State<HomeScreen> {
 }
 
 //---------------------------------
-// Updated IssueCard Widget accepting token and a refresh callback.
+// Updated IssueCard Widget
 //---------------------------------
 class IssueCard extends StatefulWidget {
   final ReportModel report;
@@ -393,7 +390,12 @@ class _IssueCardState extends State<IssueCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () {
-          Navigator.pushNamed(context, "/issue_nearby");
+          // Pass the report ID dynamically to the /issue_nearby route
+          Navigator.pushNamed(
+            context,
+            "/issue_nearby",
+            arguments: {"reportId": widget.report.id},
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
