@@ -76,7 +76,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Wrap the list with RefreshIndicator for pull-to-refresh functionality.
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _loadTokenAndFetchReports,
@@ -153,6 +152,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Build each report card.
   Widget _buildProblemCard(BuildContext context, HistoryReportModel report) {
     return Card(
       elevation: 3,
@@ -164,14 +164,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          Navigator.pushReplacementNamed(context, "/problem_reported");
+          // ✅ Pass dynamic reportId here!
+          Navigator.pushNamed(
+            context,
+            "/problem_reported",
+            arguments: {
+              "reportId": report.id,
+            },
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display report type as title.
               Text(
                 report.reportType,
                 style: const TextStyle(
@@ -181,7 +187,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              // Display report ID.
               Text(
                 "ID: ${report.id}",
                 style: const TextStyle(
@@ -190,7 +195,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Display description.
               Text(
                 report.description,
                 style: const TextStyle(
@@ -199,7 +203,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Display status and priority as tags.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -215,6 +218,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Builds priority/status tags.
   Widget _buildTag(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

@@ -1,3 +1,3 @@
 class ApiConfig {
-  static const String baseUrl = 'http://10.0.2.2:8080/api';
+  static const String baseUrl = 'https://infratrack-backend.azurewebsites.net/api';
 }

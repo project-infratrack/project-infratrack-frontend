@@ -10,6 +10,8 @@ class ViewReportsModel {
   final double longitude;
   final int thumbsUp;
   final int thumbsDown;
+  final String priorityLevel; // NEW
+  final String status;        // NEW
 
   ViewReportsModel({
     required this.id,
@@ -22,6 +24,8 @@ class ViewReportsModel {
     required this.longitude,
     required this.thumbsUp,
     required this.thumbsDown,
+    required this.priorityLevel, // NEW
+    required this.status,        // NEW
   });
 
   factory ViewReportsModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +40,8 @@ class ViewReportsModel {
       longitude: (json['longitude'] ?? 0).toDouble(),
       thumbsUp: json['thumbsUp'] ?? 0,
       thumbsDown: json['thumbsDown'] ?? 0,
+      priorityLevel: json['priorityLevel'] ?? '', // NEW
+      status: json['status'] ?? '',               // NEW
     );
   }
 }
