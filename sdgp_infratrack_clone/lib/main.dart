@@ -19,7 +19,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,8 +32,9 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.white),
         ),
       ),
-      home: const LoginScreen(), // Default starting screen
-      // Static routes for screens that don't require dynamic arguments.
+      home: const LoginScreen(),
+
+      // Static routes
       routes: {
         "/signup": (context) => const SignUpScreen(),
         "/login": (context) => const LoginScreen(),
@@ -44,35 +45,49 @@ class MyApp extends StatelessWidget {
         "/reset_password": (context) => const ResetPasswordScreen(),
         "/history": (context) => HistoryScreen(),
         "/issue_reported": (context) => const IssueReportedScreen(),
-        "/problem_reported": (context) => const ProblemPageReportedScreen(),
         "/add_report": (context) => const ReportIssueScreen(),
         "/issue_rejected": (context) => const IssueRejectedScreen(),
       },
-      // onGenerateRoute handles dynamic routes.
+
+      // Dynamic routes
       onGenerateRoute: (settings) {
-        // Dynamic route for "/issue_nearby"
+        // Dynamic route for /issue_nearby
         if (settings.name == "/issue_nearby") {
           final args = settings.arguments as Map<String, dynamic>?;
           if (args != null && args.containsKey("reportId")) {
             final reportId = args["reportId"] as String;
-            // Return the IssuesNearbyScreen with the dynamic reportId.
             return MaterialPageRoute(
               builder: (context) => IssuesNearbyScreen(reportId: reportId),
             );
           } else {
-            // If no reportId is provided, show an error page or fallback.
-            return MaterialPageRoute(
-              builder: (context) => const Scaffold(
-                body: Center(
-                  child: Text("Report ID is required for this route."),
-                ),
-              ),
-            );
+            return _errorPage("Report ID is required for this route.");
           }
         }
-        // If no matching route, return null to let Flutter handle it.
+
+        // Dynamic route for /problem_reported
+        if (settings.name == "/problem_reported") {
+          final args = settings.arguments as Map<String, dynamic>?;
+          if (args != null && args.containsKey("reportId")) {
+            final reportId = args["reportId"] as String;
+            return MaterialPageRoute(
+              builder: (context) => ProblemPageReportedScreen(reportId: reportId),
+            );
+          } else {
+            return _errorPage("Report ID is required for this route.");
+          }
+        }
+
         return null;
       },
+    );
+  }
+
+  // Error fallback widget
+  MaterialPageRoute _errorPage(String message) {
+    return MaterialPageRoute(
+      builder: (context) => Scaffold(
+        body: Center(child: Text(message)),
+      ),
     );
   }
 }
