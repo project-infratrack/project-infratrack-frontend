@@ -77,29 +77,64 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: _userReports == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : FutureBuilder<List<HistoryReportModel>>(
-                      future: _userReports,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Center(child: Text('No reported problems found.'));
-                        } else {
-                          final reports = snapshot.data!;
-                          return ListView.builder(
-                            itemCount: reports.length,
-                            itemBuilder: (context, index) {
-                              final report = reports[index];
-                              return _buildProblemCard(context, report);
-                            },
-                          );
-                        }
-                      },
-                    ),
+              child: RefreshIndicator(
+                onRefresh: _loadTokenAndFetchReports,
+                child: _userReports == null
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(
+                            height: 200,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        ],
+                      )
+                    : FutureBuilder<List<HistoryReportModel>>(
+                        future: _userReports,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: const [
+                                SizedBox(
+                                  height: 200,
+                                  child: Center(child: CircularProgressIndicator()),
+                                )
+                              ],
+                            );
+                          } else if (snapshot.hasError) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height: 200,
+                                  child: Center(child: Text('Error: ${snapshot.error}')),
+                                )
+                              ],
+                            );
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: const [
+                                SizedBox(
+                                  height: 200,
+                                  child: Center(child: Text('No reported problems found.')),
+                                )
+                              ],
+                            );
+                          } else {
+                            final reports = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: reports.length,
+                              itemBuilder: (context, index) {
+                                final report = reports[index];
+                                return _buildProblemCard(context, report);
+                              },
+                            );
+                          }
+                        },
+                      ),
+              ),
             ),
           ],
         ),
@@ -117,6 +152,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Build each report card.
   Widget _buildProblemCard(BuildContext context, HistoryReportModel report) {
     return Card(
       elevation: 3,
@@ -128,14 +164,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          Navigator.pushReplacementNamed(context, "/problem_reported");
+          // ✅ Pass dynamic reportId here!
+          Navigator.pushNamed(
+            context,
+            "/problem_reported",
+            arguments: {
+              "reportId": report.id,
+            },
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display report type as title.
               Text(
                 report.reportType,
                 style: const TextStyle(
@@ -145,7 +187,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              // Display report ID.
               Text(
                 "ID: ${report.id}",
                 style: const TextStyle(
@@ -154,7 +195,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Display description.
               Text(
                 report.description,
                 style: const TextStyle(
@@ -163,7 +203,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Display status and priority as tags.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -179,6 +218,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Builds priority/status tags.
   Widget _buildTag(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

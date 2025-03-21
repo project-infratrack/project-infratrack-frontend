@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/reset_password_services.dart'; // Import your service
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -12,6 +13,64 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+
+  String? idNumber;
+  String? token;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Receive arguments from OTP screen
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      idNumber = args['idNumber'];
+      token = args['token'];
+    }
+  }
+
+  Future<void> _handlePasswordReset() async {
+    String newPassword = _newPasswordController.text.trim();
+    String confirmPassword = _confirmPasswordController.text.trim();
+
+    if (newPassword.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill in all fields.")),
+      );
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match.")),
+      );
+      return;
+    }
+
+    if (idNumber == null || token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid session. Please try again.")),
+      );
+      return;
+    }
+
+    bool success = await ResetPasswordServices.resetPassword(
+      token: token!,
+      idNumber: idNumber!,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password reset successful!")),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to reset password. Please try again.")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,10 +147,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                   // Confirm Button
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/login');
-                      // Navigate to login or home page
-                    },
+                    onPressed: _handlePasswordReset,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -131,15 +187,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Info Icon for "New Password" Field
-            if (isNewPassword)
-              IconButton(
-                icon: const Icon(Icons.info_outline, color: Colors.white70),
-                onPressed: () {
-                  // Show password guidelines (e.g., Snackbar or AlertDialog)
-                },
-              ),
-            // Visibility Toggle Icon
             IconButton(
               icon: Icon(
                 isNewPassword

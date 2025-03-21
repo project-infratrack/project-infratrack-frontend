@@ -85,7 +85,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  // Header area with curved background.
+                  // Header area with curved background and greeting text inside.
                   ClipPath(
                     clipper: HeaderClipper(),
                     child: Container(
@@ -97,61 +97,63 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           end: Alignment.bottomRight,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Greeting using the user's name.
-                  Text(
-                    "Hey, ${profile.name}!",
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // User Information Card.
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                      child: Center(
+                        child: Text(
+                          "Hey, ${profile.name}!",
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            InfoRow(
-                              icon: Icons.person,
-                              label: "Name",
-                              value: profile.name,
-                            ),
-                            const SizedBox(height: 10),
-                            InfoRow(
-                              icon: Icons.credit_card,
-                              label: "NIC / EIC",
-                              value: profile.idNumber,
-                            ),
-                            const SizedBox(height: 10),
-                            InfoRow(
-                              icon: Icons.account_circle,
-                              label: "Username",
-                              value: profile.username,
-                            ),
-                            const SizedBox(height: 10),
-                            InfoRow(
-                              icon: Icons.email,
-                              label: "Email",
-                              value: profile.email,
-                            ),
-                            const SizedBox(height: 10),
-                            InfoRow(
-                              icon: Icons.phone,
-                              label: "Mobile",
-                              value: profile.mobileNo,
-                            ),
-                          ],
+                    ),
+                  ),
+                  // Use Transform.translate to move the data card upward, adjusted to -15.
+                  Transform.translate(
+                    offset: const Offset(0, -15),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              InfoRow(
+                                icon: Icons.person,
+                                label: "Name",
+                                value: profile.name,
+                              ),
+                              const SizedBox(height: 10),
+                              InfoRow(
+                                icon: Icons.credit_card,
+                                label: "NIC / EIC",
+                                value: profile.idNumber,
+                              ),
+                              const SizedBox(height: 10),
+                              InfoRow(
+                                icon: Icons.account_circle,
+                                label: "Username",
+                                value: profile.username,
+                              ),
+                              const SizedBox(height: 10),
+                              InfoRow(
+                                icon: Icons.email,
+                                label: "Email",
+                                value: profile.email,
+                              ),
+                              const SizedBox(height: 10),
+                              InfoRow(
+                                icon: Icons.phone,
+                                label: "Mobile",
+                                value: profile.mobileNo,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -226,38 +228,40 @@ class InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.white, Colors.grey],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
+          // Icon with gradient circular background.
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blueGrey.withOpacity(0.1),
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Icon(
               icon,
-              color: Colors.blueGrey,
-              size: 20,
+              color: Colors.white,
+              size: 24,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
+          // Text information.
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +270,7 @@ class InfoRow extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Colors.blueGrey.shade700,
                   ),
                 ),

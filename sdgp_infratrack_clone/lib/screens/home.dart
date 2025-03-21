@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infratrack/model/report_model.dart';
 import 'package:infratrack/services/home_services.dart';
-import '../components/bottom_navigation.dart'; // Your BottomNavigation widget
+import 'package:infratrack/components/bottom_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,9 +14,6 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  bool _isDarkMode = false; // Dark mode toggle
-
-  // _reportFuture is nullable until token is loaded and reports are fetched.
   Future<List<ReportModel>>? _reportFuture;
   String? _token; // Stores the extracted token
 
@@ -58,7 +55,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Home background remains white.
+      backgroundColor: Colors.white, // Home page background remains white.
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -76,20 +73,6 @@ class HomeScreenState extends State<HomeScreen> {
                       .headlineSmall!
                       .copyWith(color: Colors.white),
                 ),
-              ),
-            ),
-            // Dark Mode Toggle.
-            ListTile(
-              leading: const Icon(Icons.brightness_6),
-              title: const Text("Dark Mode"),
-              trailing: Switch(
-                value: _isDarkMode,
-                onChanged: (bool value) {
-                  setState(() {
-                    _isDarkMode = value;
-                    // TODO: Implement your dark mode logic.
-                  });
-                },
               ),
             ),
             // Profile Navigation.
@@ -126,7 +109,6 @@ class HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // Use a Builder to obtain proper context for opening the drawer.
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(
@@ -154,7 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // Header area with gradient and logo.
+          // Header area with a gradient and logo.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -176,47 +158,95 @@ class HomeScreenState extends State<HomeScreen> {
                 bottomRight: Radius.circular(20),
               ),
             ),
-            child: Center(
-              child: Image.asset(
-                'assets/png/logo2.png',
-                height: 150,
-              ),
+            child: Column(
+              children: [
+                Image.asset(
+                  'assets/png/logo2.png',
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Your Infrastructure Monitoring App",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 10),
-          // Expanded List of Issue Cards.
+          // Expanded List of Issue Cards in a RefreshIndicator.
           Expanded(
-            child: _reportFuture == null
-                ? const Center(child: CircularProgressIndicator())
-                : FutureBuilder<List<ReportModel>>(
-                    future: _reportFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No reports found.'));
-                      } else {
-                        final reports = snapshot.data!;
-                        return ListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          itemCount: reports.length,
-                          itemBuilder: (context, index) {
-                            final report = reports[index];
-                            return IssueCard(
-                              report: report,
-                              token: _token!, // Pass the extracted token.
-                              onRefresh: _loadTokenAndFetchReports, // Refresh callback.
-                            );
-                          },
-                        );
-                      }
-                    },
-                  ),
+            child: RefreshIndicator(
+              onRefresh: _loadTokenAndFetchReports,
+              child: _reportFuture == null
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      ],
+                    )
+                  : FutureBuilder<List<ReportModel>>(
+                      future: _reportFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [
+                              SizedBox(
+                                height: 200,
+                                child: Center(child: CircularProgressIndicator()),
+                              ),
+                            ],
+                          );
+                        } else if (snapshot.hasError) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height: 200,
+                                child: Center(
+                                  child: Text('Error: ${snapshot.error}'),
+                                ),
+                              ),
+                            ],
+                          );
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [
+                              SizedBox(
+                                height: 200,
+                                child: Center(child: Text('No reports found.')),
+                              ),
+                            ],
+                          );
+                        } else {
+                          final reports = snapshot.data!;
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            itemCount: reports.length,
+                            itemBuilder: (context, index) {
+                              final report = reports[index];
+                              return IssueCard(
+                                report: report,
+                                token: _token!, // Pass the extracted token.
+                                onRefresh: _loadTokenAndFetchReports, // Callback to refresh
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
+            ),
           ),
         ],
       ),
@@ -229,7 +259,7 @@ class HomeScreenState extends State<HomeScreen> {
 }
 
 //---------------------------------
-// Updated IssueCard Widget accepting token and a refresh callback.
+// Updated IssueCard Widget
 //---------------------------------
 class IssueCard extends StatefulWidget {
   final ReportModel report;
@@ -360,7 +390,12 @@ class _IssueCardState extends State<IssueCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () {
-          Navigator.pushNamed(context, "/issue_nearby");
+          // Pass the report ID dynamically to the /issue_nearby route
+          Navigator.pushNamed(
+            context,
+            "/issue_nearby",
+            arguments: {"reportId": widget.report.id},
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/password_recovery_services.dart';
 
 class RecoverPasswordScreen extends StatefulWidget {
   const RecoverPasswordScreen({super.key});
@@ -14,7 +15,8 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        FocusScope.of(context).unfocus(); // Dismiss keyboard when tapping outside
+        FocusScope.of(context)
+            .unfocus(); // Dismiss keyboard when tapping outside
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true, // Fixes keyboard not appearing
@@ -46,7 +48,8 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
 
             // Recover Password Form
             Expanded(
-              child: SingleChildScrollView( // Ensures keyboard scrolls properly
+              child: SingleChildScrollView(
+                // Ensures keyboard scrolls properly
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(25),
@@ -86,20 +89,39 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
 
                       // Recover Button
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, "/recover_password_otp");
-                          // String nicNumber = _nicController.text.trim();
-                          // if (nicNumber.isNotEmpty) {
-                          //   print("NIC Entered: $nicNumber");
-                          // } else {
-                          //   ScaffoldMessenger.of(context).showSnackBar(
-                          //     const SnackBar(content: Text("Please enter your NIC number")),
-                          //   );
-                          // }
+                        onPressed: () async {
+                          String idNumber = _nicController.text.trim();
+                          if (idNumber.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("Please enter your NIC number")),
+                            );
+                            return;
+                          }
+
+                          bool success = await PasswordRecoveryServices
+                              .requestPasswordReset(idNumber);
+
+                          if (success) {
+                            Navigator.pushNamed(
+                              context,
+                              "/recover_password_otp",
+                              arguments: {'idNumber': idNumber},
+                            );
+                          } else {
+                            // Show error message if user doesn't exist or other backend error
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      "Invalid ID number or user not found. Please check and try again.")),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 50, vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -136,7 +158,8 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
             borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         ),
         style: const TextStyle(color: Colors.white, fontSize: 16),
       ),
