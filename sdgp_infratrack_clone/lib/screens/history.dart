@@ -22,7 +22,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _loadTokenAndFetchReports();
   }
 
-  /// Loads the Bearer token from SharedPreferences and fetches the user reports.
   Future<void> _loadTokenAndFetchReports() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -79,80 +78,51 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _loadTokenAndFetchReports,
-                child: _userReports == null
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
-                          SizedBox(
-                            height: 200,
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        ],
-                      )
-                    : FutureBuilder<List<HistoryReportModel>>(
-                        future: _userReports,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: const [
-                                SizedBox(
-                                  height: 200,
-                                  child: Center(child: CircularProgressIndicator()),
-                                )
-                              ],
-                            );
-                          } else if (snapshot.hasError) {
-                            return ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                SizedBox(
-                                  height: 200,
-                                  child: Center(child: Text('Error: ${snapshot.error}')),
-                                )
-                              ],
-                            );
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: const [
-                                SizedBox(
-                                  height: 200,
-                                  child: Center(child: Text('No reported problems found.')),
-                                )
-                              ],
-                            );
-                          } else {
-                            final reports = snapshot.data!;
-                            return ListView.builder(
-                              itemCount: reports.length,
-                              itemBuilder: (context, index) {
-                                final report = reports[index];
-                                return _buildProblemCard(context, report);
-                              },
-                            );
-                          }
+                child: FutureBuilder<List<HistoryReportModel>>(
+                  future: _userReports,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return _buildEmptyState(
+                        "Something went wrong!",
+                        "Please check your connection or try again later.",
+                      );
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      // User hasn't submitted any reports
+                      return _buildEmptyState(
+                        "No Reports Found",
+                        "You haven't reported any problems yet.",
+                      );
+                    } else {
+                      final reports = snapshot.data!;
+                      return ListView.builder(
+                        itemCount: reports.length,
+                        itemBuilder: (context, index) {
+                          final report = reports[index];
+                          return _buildProblemCard(context, report);
                         },
-                      ),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigation(
-        selectedIndex: 1, // History page index
+        selectedIndex: 1,
         onItemTapped: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, "/home");
-          } else if (index == 1) {
-            // Already on History page.
           }
         },
       ),
     );
   }
 
-  /// Build each report card.
+  /// Problem Card
   Widget _buildProblemCard(BuildContext context, HistoryReportModel report) {
     return Card(
       elevation: 3,
@@ -164,7 +134,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          // ✅ Pass dynamic reportId here!
           Navigator.pushNamed(
             context,
             "/problem_reported",
@@ -218,7 +187,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  /// Builds priority/status tags.
+  /// Priority/Status Tags
   Widget _buildTag(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -234,6 +203,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+
+  /// Empty State Widget
+  Widget _buildEmptyState(String title, String message) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        const SizedBox(height: 100),
+        Center(
+          child: Icon(Icons.report_problem, size: 80, color: Colors.grey.shade400),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black54),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Center(
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, color: Colors.black45),
+          ),
+        ),
+      ],
     );
   }
 }
