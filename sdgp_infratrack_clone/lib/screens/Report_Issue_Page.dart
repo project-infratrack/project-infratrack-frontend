@@ -8,6 +8,8 @@ import 'package:infratrack/components/bottom_navigation.dart';
 import 'package:infratrack/components/map_picker_popup.dart';
 import 'package:infratrack/services/report_issue_services.dart';
 
+import '../services/ImageValidationService.dart';
+
 class ReportIssueScreen extends StatefulWidget {
   const ReportIssueScreen({super.key});
 
@@ -30,21 +32,52 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   LatLng _selectedLocation = const LatLng(34.0522, -118.2437);
   bool _locationSelected = false;
 
+  // Image validation variables
+  bool _isImageValidated = false;
+  bool _isValidating = false;
+  String _validationMessage = "";
+
+  Future<void> _validateAndSetImage(File image) async {
+    setState(() {
+      _selectedImage = image;
+      _isValidating = true;
+      _isImageValidated = false;
+      _validationMessage = "Validating image...";
+    });
+
+    try {
+      final result = await ImageValidationService.validateImage(image);
+      final bool isPotholeDetected = result['pothole_detected'] ?? false;
+
+      setState(() {
+        _isValidating = false;
+        _isImageValidated = isPotholeDetected;
+        if (isPotholeDetected) {
+          _validationMessage = "Image validated: Issue detected";
+        } else {
+          _validationMessage = "Invalid image: No issue detected";
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isValidating = false;
+        _isImageValidated = false;
+        _validationMessage = "Validation failed: $e";
+      });
+    }
+  }
+
   Future<void> _pickImageFromGallery() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
+      await _validateAndSetImage(File(image.path));
     }
   }
 
   Future<void> _pickImageFromCamera() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
+      await _validateAndSetImage(File(image.path));
     }
   }
 
@@ -101,6 +134,12 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please upload an image.")),
+      );
+      return;
+    }
+    if (!_isImageValidated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please upload a valid image showing an infrastructure issue.")),
       );
       return;
     }
@@ -239,7 +278,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  /// Image upload
+  /// Image upload with validation status
   Widget _buildUploadImageButton() {
     return Container(
       decoration: BoxDecoration(
@@ -253,22 +292,50 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           child: _selectedImage == null
               ? Column(
-                  children: const [
-                    Icon(Icons.cloud_upload, color: Colors.black, size: 36),
-                    SizedBox(height: 8),
-                    Text("Upload Image(s)*",
-                        style: TextStyle(color: Colors.black, fontSize: 16)),
-                  ],
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    _selectedImage!,
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+            children: const [
+              Icon(Icons.cloud_upload, color: Colors.black, size: 36),
+              SizedBox(height: 8),
+              Text("Upload Image(s)*",
+                  style: TextStyle(color: Colors.black, fontSize: 16)),
+            ],
+          )
+              : Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  _selectedImage!,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
+              ),
+              const SizedBox(height: 8),
+              if (_isValidating)
+                const CircularProgressIndicator()
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _isImageValidated ? Icons.check_circle : Icons.error,
+                      color: _isImageValidated ? Colors.green : Colors.red,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        _validationMessage,
+                        style: TextStyle(
+                          color: _isImageValidated ? Colors.green : Colors.red,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -348,7 +415,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // Keep the same background gradient
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFFE6F1FA), Color(0xFFD0E9F7)],
@@ -375,7 +441,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              // Title near the top
               const SizedBox(height: 20),
               const Text(
                 "Report an issue",
@@ -386,38 +451,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              // Extra spacing so container is visually centered
               const SizedBox(height: 40),
-              // Container holding the input fields
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildDropdownButton(),
-                    const SizedBox(height: 16),
-                    _buildTextField(),
-                    const SizedBox(height: 16),
-                    _buildUploadImageButton(),
-                    const SizedBox(height: 16),
-                    _buildMapSelector(),
-                  ],
-                ),
-              ),
-              // The narrower black "Report Issue" button placed further down
+              _buildInputFieldsContainer(),
               _buildReportIssueButtonNarrow(),
               const SizedBox(height: 30),
             ],
