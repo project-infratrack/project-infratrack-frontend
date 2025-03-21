@@ -243,13 +243,13 @@ class InfoRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon with gradient circular background.
+          // Icon with gradient circular background using the same blue color as the header.
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                colors: [Color(0xFF2C3E50), Color(0xFF2C3E50)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

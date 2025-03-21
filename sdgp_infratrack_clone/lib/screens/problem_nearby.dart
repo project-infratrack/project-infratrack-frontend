@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
@@ -28,7 +27,6 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
   Future<void> _loadReport() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? "";
-    // Use the reportId passed via the widget.
     setState(() {
       _reportFuture = ProblemPageServices.getReportById(widget.reportId, token);
     });
@@ -41,37 +39,45 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     return Container(
       height: 180,
       width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey[100],
+      ),
       child: Stack(
         children: [
-          // GoogleMap in non-interactive mode.
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: reportLocation,
-              zoom: 14,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: reportLocation,
+                zoom: 14,
+              ),
+              markers: {
+                Marker(
+                  markerId: const MarkerId("report-location"),
+                  position: reportLocation,
+                  draggable: false,
+                )
+              },
+              zoomGesturesEnabled: false,
+              scrollGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              rotateGesturesEnabled: false,
+              onMapCreated: (controller) {},
             ),
-            markers: {
-              Marker(
-                markerId: const MarkerId("report-location"),
-                position: reportLocation,
-                draggable: false,
-              )
-            },
-            zoomGesturesEnabled: false,
-            scrollGesturesEnabled: false,
-            tiltGesturesEnabled: false,
-            rotateGesturesEnabled: false,
-            onMapCreated: (controller) {},
           ),
           // Overlay an InkWell to capture taps.
           Positioned.fill(
             child: Material(
               color: Colors.transparent,
               child: InkWell(
+                borderRadius: BorderRadius.circular(12),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MapViewPopup(initialLocation: reportLocation),
+                      builder: (context) =>
+                          MapViewPopup(initialLocation: reportLocation),
                     ),
                   );
                 },
@@ -83,7 +89,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     );
   }
 
-  /// Builds a card with report details, including the decoded image.
+  /// Builds a card with report details, each wrapped in its own container.
   Widget _buildIssueCard(ViewReportsModel report) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -99,59 +105,112 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            report.reportType,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          // Report Type
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE6F1FA),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "Report ID: ${report.id}",
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
+            child: Center(
+              child: Text(
+                report.reportType,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+
+          // Report ID
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Text(
-              report.description,
+              "Report ID: ${report.id}",
               style: const TextStyle(
                 fontSize: 14,
-                color: Colors.black,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            report.location,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black,
+
+          // Description with more space
+          Container(
+            height: 150, // Increased height for more description space
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SingleChildScrollView(
+              child: Text(
+                report.description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.left,
+              ),
             ),
           ),
           const SizedBox(height: 12),
-          // Show the decoded image if available.
-          report.image.isNotEmpty
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.memory(
-                    base64Decode(report.image),
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+
+          // Location
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.location_on, size: 18, color: Colors.black54),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    report.location,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
                   ),
-                )
-              : Container(),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
+
+          // Image (if available)
+          if (report.image.isNotEmpty)
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[100],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  base64Decode(report.image),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          if (report.image.isNotEmpty) const SizedBox(height: 12),
+
+          // Map Preview
           _buildMapPreview(report),
         ],
       ),
@@ -173,7 +232,8 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle, color: Colors.black, size: 28),
+            icon:
+                const Icon(Icons.account_circle, color: Colors.black, size: 28),
             onPressed: () {
               Navigator.pushReplacementNamed(context, "/profile");
             },
