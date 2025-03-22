@@ -7,9 +7,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
 import 'package:infratrack/components/map_picker_popup.dart';
 import 'package:infratrack/services/report_issue_services.dart';
-
 import '../services/ImageValidationService.dart';
 
+/// Screen for reporting infrastructure issues.
+///
+/// Allows users to:
+/// - Select an issue type
+/// - Add a description
+/// - Upload an image (with image validation)
+/// - Select a location via map picker
+/// - Submit the issue report to the backend
 class ReportIssueScreen extends StatefulWidget {
   const ReportIssueScreen({super.key});
 
@@ -18,25 +25,40 @@ class ReportIssueScreen extends StatefulWidget {
 }
 
 class _ReportIssueScreenState extends State<ReportIssueScreen> {
+  /// Currently selected issue type.
   String selectedIssue = "Choose Issue Type";
+
+  /// Available issue types for dropdown selection.
   final List<String> issueTypes = [
     "Pothole",
     "Overgrown trees",
     "Broken street lights",
   ];
 
+  /// Controller for issue description input.
   final TextEditingController _descriptionController = TextEditingController();
+
+  /// Stores the selected image file.
   File? _selectedImage;
+
   final ImagePicker _picker = ImagePicker();
 
+  /// Stores the selected location coordinates.
   LatLng _selectedLocation = const LatLng(34.0522, -118.2437);
+
+  /// Indicates if a location has been selected.
   bool _locationSelected = false;
 
-  // Image validation variables
+  /// Image validation status.
   bool _isImageValidated = false;
+
+  /// Whether image validation is in progress.
   bool _isValidating = false;
+
+  /// Message to display image validation result.
   String _validationMessage = "";
 
+  /// Validates the selected image using [ImageValidationService].
   Future<void> _validateAndSetImage(File image) async {
     setState(() {
       _selectedImage = image;
@@ -52,11 +74,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
       setState(() {
         _isValidating = false;
         _isImageValidated = isPotholeDetected;
-        if (isPotholeDetected) {
-          _validationMessage = "Image validated: Issue detected";
-        } else {
-          _validationMessage = "Invalid image: No issue detected";
-        }
+        _validationMessage = isPotholeDetected
+            ? "Image validated: Issue detected"
+            : "Invalid image: No issue detected";
       });
     } catch (e) {
       setState(() {
@@ -67,6 +87,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     }
   }
 
+  /// Opens gallery to pick an image.
   Future<void> _pickImageFromGallery() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -74,6 +95,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     }
   }
 
+  /// Opens camera to take a new picture.
   Future<void> _pickImageFromCamera() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image != null) {
@@ -81,6 +103,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     }
   }
 
+  /// Shows a bottom sheet to choose image source (Gallery or Camera).
   void _showImageSourceActionSheet() {
     showModalBottomSheet(
       context: context,
@@ -111,8 +134,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
+  /// Submits the report after validating all required fields.
   Future<void> _submitReport() async {
-    // Validate required fields
     if (selectedIssue == "Choose Issue Type") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select an issue type.")),
@@ -182,7 +205,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     }
   }
 
-  /// The container that holds all input fields
+  // ------------------------- UI Builders -------------------------
+
+  /// Builds container holding input fields (dropdown, textfield, image upload, map selector).
   Widget _buildInputFieldsContainer() {
     return Container(
       width: double.infinity,
@@ -214,7 +239,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  /// Drop-down for issue type
+  /// Builds the dropdown for selecting issue type.
   Widget _buildDropdownButton() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -230,12 +255,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
           style: const TextStyle(color: Colors.black, fontSize: 16),
           items: [
-            // "Choose Issue Type" always black
             const DropdownMenuItem(
               value: "Choose Issue Type",
               child: Text("Choose Issue Type"),
             ),
-            // For each real issue, if it is the selected item, text is blue
             ...issueTypes.map((issue) {
               return DropdownMenuItem<String>(
                 value: issue,
@@ -258,7 +281,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  /// Text field for description
+  /// Builds the description text field.
   Widget _buildTextField() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -278,7 +301,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  /// Image upload with validation status
+  /// Builds the image upload section with validation message.
   Widget _buildUploadImageButton() {
     return Container(
       decoration: BoxDecoration(
@@ -292,56 +315,60 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           child: _selectedImage == null
               ? Column(
-            children: const [
-              Icon(Icons.cloud_upload, color: Colors.black, size: 36),
-              SizedBox(height: 8),
-              Text("Upload Image(s)*",
-                  style: TextStyle(color: Colors.black, fontSize: 16)),
-            ],
-          )
+                  children: const [
+                    Icon(Icons.cloud_upload, color: Colors.black, size: 36),
+                    SizedBox(height: 8),
+                    Text("Upload Image(s)*",
+                        style: TextStyle(color: Colors.black, fontSize: 16)),
+                  ],
+                )
               : Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  _selectedImage!,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (_isValidating)
-                const CircularProgressIndicator()
-              else
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      _isImageValidated ? Icons.check_circle : Icons.error,
-                      color: _isImageValidated ? Colors.green : Colors.red,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        _validationMessage,
-                        style: TextStyle(
-                          color: _isImageValidated ? Colors.green : Colors.red,
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        _selectedImage!,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    if (_isValidating)
+                      const CircularProgressIndicator()
+                    else
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _isImageValidated
+                                ? Icons.check_circle
+                                : Icons.error,
+                            color: _isImageValidated ? Colors.green : Colors.red,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              _validationMessage,
+                              style: TextStyle(
+                                color: _isImageValidated
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
-            ],
-          ),
         ),
       ),
     );
   }
 
-  /// Map location button
+  /// Builds button to select location from map.
   Widget _buildMapSelector() {
     return Container(
       decoration: BoxDecoration(
@@ -382,7 +409,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
-  /// Narrow black "Report Issue" button, placed below the container
+  /// Builds "Report Issue" submit button.
   Widget _buildReportIssueButtonNarrow() {
     return Padding(
       padding: const EdgeInsets.only(top: 40),
@@ -412,6 +439,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     );
   }
 
+  /// Builds main UI.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -433,8 +461,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.account_circle, color: Colors.black, size: 28),
-              onPressed: () => Navigator.pushReplacementNamed(context, "/profile"),
+              icon:
+                  const Icon(Icons.account_circle, color: Colors.black, size: 28),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, "/profile"),
             ),
           ],
         ),

@@ -1,10 +1,13 @@
-// lib/screens/user_profile_screen.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:infratrack/model/user_profile_model.dart';
 import 'package:infratrack/services/user_profile_services.dart';
 
+/// Displays the user's profile information.
+///
+/// Fetches the user's data using the stored token and shows details like name,
+/// NIC, username, email, and mobile number. Also provides a logout option.
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
 
@@ -13,7 +16,10 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  /// Future holding the user profile data.
   Future<UserProfile>? _profileFuture;
+
+  /// Stores the authentication token retrieved from SharedPreferences.
   String? _token;
 
   @override
@@ -22,7 +28,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     _loadTokenAndFetchProfile();
   }
 
-  /// Loads the token from SharedPreferences and fetches the user profile.
+  /// Loads the authentication token and fetches the user's profile data.
+  ///
+  /// If the token is missing or invalid, the user is redirected to the login screen.
   Future<void> _loadTokenAndFetchProfile() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -85,7 +93,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  // Header area with curved background and greeting text inside.
+                  /// Header with gradient background and greeting text
                   ClipPath(
                     clipper: HeaderClipper(),
                     child: Container(
@@ -109,7 +117,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                   ),
-                  // Use Transform.translate to move the data card upward, adjusted to -15.
+
+                  /// Profile information card
                   Transform.translate(
                     offset: const Offset(0, -15),
                     child: Padding(
@@ -159,7 +168,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Logout Button.
+
+                  /// Logout button
                   ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pushReplacementNamed(context, "/login");
@@ -188,14 +198,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
-// Custom Clipper for the header's curved bottom edge.
+/// Custom clipper to create a curved header design.
 class HeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    // Start at top left.
     path.lineTo(0, size.height - 40);
-    // Draw a quadratic curve for a smooth curve.
     var firstControlPoint = Offset(size.width / 2, size.height);
     var firstEndPoint = Offset(size.width, size.height - 40);
     path.quadraticBezierTo(
@@ -204,7 +212,6 @@ class HeaderClipper extends CustomClipper<Path> {
       firstEndPoint.dx,
       firstEndPoint.dy,
     );
-    // Line to top right and close.
     path.lineTo(size.width, 0);
     path.close();
     return path;
@@ -214,10 +221,12 @@ class HeaderClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+/// Widget to display each profile information row with an icon, label, and value.
 class InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+
   const InfoRow({
     super.key,
     required this.icon,
@@ -243,7 +252,6 @@ class InfoRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon with gradient circular background using the same blue color as the header.
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
@@ -261,7 +269,6 @@ class InfoRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 20),
-          // Text information.
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

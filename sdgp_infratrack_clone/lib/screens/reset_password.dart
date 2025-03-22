@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/reset_password_services.dart'; // Import your service
 
+/// Screen that allows the user to reset their password after OTP verification.
+///
+/// Receives the user's NIC number and token from the previous OTP screen.
+/// Allows entering a new password, confirming it, and submitting the reset request.
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -8,13 +12,24 @@ class ResetPasswordScreen extends StatefulWidget {
   _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
 }
 
+/// State class for [ResetPasswordScreen], handling password input, validation, and submission.
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  /// Controller for new password input.
   final TextEditingController _newPasswordController = TextEditingController();
+
+  /// Controller for confirm password input.
   final TextEditingController _confirmPasswordController = TextEditingController();
+
+  /// Toggles visibility of the new password field.
   bool _isPasswordVisible = false;
+
+  /// Toggles visibility of the confirm password field.
   bool _isConfirmPasswordVisible = false;
 
+  /// NIC number passed from OTP screen.
   String? idNumber;
+
+  /// Token passed from OTP screen.
   String? token;
 
   @override
@@ -28,6 +43,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 
+  /// Handles password reset submission after validation.
   Future<void> _handlePasswordReset() async {
     String newPassword = _newPasswordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
@@ -53,6 +69,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
+    // Call backend service to reset password
     bool success = await ResetPasswordServices.resetPassword(
       token: token!,
       idNumber: idNumber!,
@@ -72,6 +89,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 
+  /// Builds the password input fields and confirm button UI.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +106,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ),
       body: Column(
         children: [
-          // Logo and Title
+          // Logo and Title section
           Container(
             color: const Color(0xFF2C3E50),
             width: double.infinity,
@@ -101,7 +119,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
 
-          // Reset Password Form
+          // Password input form
           Expanded(
             child: Container(
               width: double.infinity,
@@ -135,12 +153,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // New Password Input Field
+                  // New Password Field
                   _buildPasswordField("New Password", _newPasswordController, true),
 
                   const SizedBox(height: 15),
 
-                  // Confirm New Password Input Field
+                  // Confirm Password Field
                   _buildPasswordField("Re-enter New Password", _confirmPasswordController, false),
 
                   const SizedBox(height: 20),
@@ -169,7 +187,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
-  // Password Input Field
+  /// Builds the password input fields with visibility toggle.
   Widget _buildPasswordField(String hintText, TextEditingController controller, bool isNewPassword) {
     return TextField(
       controller: controller,
@@ -184,27 +202,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                isNewPassword
-                    ? (_isPasswordVisible ? Icons.visibility : Icons.visibility_off)
-                    : (_isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off),
-                color: Colors.white70,
-              ),
-              onPressed: () {
-                setState(() {
-                  if (isNewPassword) {
-                    _isPasswordVisible = !_isPasswordVisible;
-                  } else {
-                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                  }
-                });
-              },
-            ),
-          ],
+        suffixIcon: IconButton(
+          icon: Icon(
+            isNewPassword
+                ? (_isPasswordVisible ? Icons.visibility : Icons.visibility_off)
+                : (_isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off),
+            color: Colors.white70,
+          ),
+          onPressed: () {
+            setState(() {
+              if (isNewPassword) {
+                _isPasswordVisible = !_isPasswordVisible;
+              } else {
+                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+              }
+            });
+          },
         ),
       ),
       style: const TextStyle(color: Colors.white, fontSize: 16),

@@ -7,8 +7,23 @@ import 'package:infratrack/services/reported_pages_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:infratrack/components/MapViewPopup.dart';
 
+/// Screen that displays detailed information of a previously reported issue.
+///
+/// The [ProblemPageReportedScreen] fetches and shows information such as:
+/// - Report type
+/// - Complaint ID
+/// - Description
+/// - Location
+/// - Priority level and status
+/// - Associated image
+/// - Static map preview with location pin
+///
+/// The report is fetched using the [reportId] passed to the screen.
 class ProblemPageReportedScreen extends StatefulWidget {
+  /// Unique ID of the report to be displayed.
   final String reportId;
+
+  /// Creates an instance of [ProblemPageReportedScreen].
   const ProblemPageReportedScreen({super.key, required this.reportId});
 
   @override
@@ -16,7 +31,9 @@ class ProblemPageReportedScreen extends StatefulWidget {
       _ProblemPageReportedScreenState();
 }
 
+/// State class responsible for data fetching and UI rendering for [ProblemPageReportedScreen].
 class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
+  /// Holds the fetched report details from the backend.
   Future<ViewReportsModel>? _reportFuture;
 
   @override
@@ -25,6 +42,7 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
     _loadReport();
   }
 
+  /// Loads the specific report data using stored auth token and the report ID.
   Future<void> _loadReport() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? "";
@@ -34,8 +52,9 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
     });
   }
 
-  /// Builds a map preview showing the report location.
-  /// When tapped, it opens a full-screen map view.
+  /// Builds a map preview showing the location of the report.
+  ///
+  /// Tapping the preview opens a full-screen map in read-only mode.
   Widget _buildMapPreview(ViewReportsModel report) {
     final LatLng reportLocation = LatLng(report.latitude, report.longitude);
     return Container(
@@ -68,7 +87,6 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
               onMapCreated: (controller) {},
             ),
           ),
-          // Overlay an InkWell to capture taps.
           Positioned.fill(
             child: Material(
               color: Colors.transparent,
@@ -91,7 +109,7 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
     );
   }
 
-  /// Builds a card with report details, including the decoded image.
+  /// Builds the main issue card displaying all report details including image, type, status.
   Widget _buildIssueCard(ViewReportsModel report) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -128,6 +146,7 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
             ),
           ),
           const SizedBox(height: 12),
+
           // Report ID
           Container(
             padding: const EdgeInsets.all(12),
@@ -145,6 +164,7 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
             ),
           ),
           const SizedBox(height: 12),
+
           // Description
           Container(
             height: 150,
@@ -165,7 +185,8 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Image Display
+
+          // Image Display (if available)
           report.image.isNotEmpty
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(12),
@@ -178,9 +199,11 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
                 )
               : Container(),
           const SizedBox(height: 12),
+
           // Map Preview
           _buildMapPreview(report),
           const SizedBox(height: 12),
+
           // Priority & Status Tags
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -195,7 +218,7 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
     );
   }
 
-  /// Builds a pill-shaped tag.
+  /// Builds a styled tag widget to display status or priority.
   Widget _buildTag(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -221,6 +244,7 @@ class _ProblemPageReportedScreenState extends State<ProblemPageReportedScreen> {
     );
   }
 
+  /// Main UI builder handling report loading, errors, or data display.
   @override
   Widget build(BuildContext context) {
     return Scaffold(

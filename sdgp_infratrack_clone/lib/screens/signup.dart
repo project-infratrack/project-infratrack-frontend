@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:infratrack/services/signup_services.dart';
 
+/// Screen where users can register a new account.
+///
+/// Collects user information such as NIC, name, username, email, mobile number, and password.
+/// Handles form validation, password matching check, and submits data to backend service.
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -9,11 +13,11 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // Password visibility toggles
+  // Toggles password visibility
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  // Controllers for each piece of user info
+  // Controllers for each form input
   final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -23,11 +27,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
-  bool _isLoading = false; // Show loading spinner while signing up
+  // Shows loading spinner while signing up
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    // Dispose controllers to free resources when screen is removed
+    // Clean up controllers when the widget is disposed
     _idNumberController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
@@ -39,11 +44,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  /// Handles form submission, validates inputs, and calls signup API.
   Future<void> _signUp() async {
-    // Optional: check if password and confirmPassword match
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
+    // Password confirmation check
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Passwords do not match.")),
@@ -56,7 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
-      // Call the service method
+      // Call signup service
       final response = await SignUpServices.registerUser(
         idNumber: _idNumberController.text.trim(),
         firstName: _firstNameController.text.trim(),
@@ -67,17 +73,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         mobileNumber: _mobileNumberController.text.trim(),
       );
 
-      // On success
       debugPrint('Registration successful: $response');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registration successful!')),
       );
 
-      // Navigate the user to the Login screen
+      // Navigate to Login
       Navigator.pushReplacementNamed(context, "/login");
-
     } catch (error) {
-      // If there's an error, show it
       debugPrint('Registration error: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Registration failed: $error')),
@@ -89,7 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // The rest of your UI code
+  /// Builds the complete UI for the signup screen.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,7 +119,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Sign Up Container
+              // Form Container
               Container(
                 margin: const EdgeInsets.only(top: 20),
                 padding: const EdgeInsets.all(20),
@@ -137,6 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(height: 20),
 
+                    // Input Fields
                     _buildInputField(
                       hint: "Enter Your National Identity Card Number",
                       controller: _idNumberController,
@@ -217,7 +221,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Reusable Input Field
+  /// Reusable Input Field builder.
   Widget _buildInputField({
     required String hint,
     required TextEditingController controller,
@@ -242,7 +246,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Reusable Password Field
+  /// Reusable Password Field builder with visibility toggle.
   Widget _buildPasswordField({
     required String hint,
     required bool obscureText,
@@ -277,7 +281,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper function to choose prefix icons based on hint text (optional).
+  /// Chooses prefix icons based on hint text content.
   Icon _getPrefixIcon(String hint) {
     final lowerHint = hint.toLowerCase();
     if (lowerHint.contains("national identity")) {

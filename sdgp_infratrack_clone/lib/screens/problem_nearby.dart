@@ -7,15 +7,26 @@ import 'package:infratrack/services/problem_page_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:infratrack/components/MapViewPopup.dart';
 
+/// A screen that displays detailed information about a specific reported issue.
+///
+/// This screen fetches the report details based on the `reportId` provided
+/// and displays report type, ID, description, location, image, and location map.
+///
+/// The map preview is interactive and opens a full-screen map when tapped.
 class IssuesNearbyScreen extends StatefulWidget {
+  /// ID of the report to be fetched and displayed.
   final String reportId;
+
+  /// Creates an instance of [IssuesNearbyScreen].
   const IssuesNearbyScreen({super.key, required this.reportId});
 
   @override
   State<IssuesNearbyScreen> createState() => _IssuesNearbyScreenState();
 }
 
+/// State class for [IssuesNearbyScreen], handling data fetching and UI building.
 class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
+  /// Future holding report data fetched from backend.
   Future<ViewReportsModel>? _reportFuture;
 
   @override
@@ -24,6 +35,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     _loadReport();
   }
 
+  /// Fetches report details from backend using stored auth token and reportId.
   Future<void> _loadReport() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? "";
@@ -32,8 +44,9 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     });
   }
 
-  /// Builds a map preview that shows the report location.
-  /// When tapped, it opens a read-only full-screen map view.
+  /// Builds a static map preview showing the report location.
+  ///
+  /// Tapping on the map opens a full-screen read-only map view.
   Widget _buildMapPreview(ViewReportsModel report) {
     final LatLng reportLocation = LatLng(report.latitude, report.longitude);
     return Container(
@@ -66,7 +79,6 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
               onMapCreated: (controller) {},
             ),
           ),
-          // Overlay an InkWell to capture taps.
           Positioned.fill(
             child: Material(
               color: Colors.transparent,
@@ -89,7 +101,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     );
   }
 
-  /// Builds a card with report details, each wrapped in its own container.
+  /// Builds the main card widget displaying all report details.
   Widget _buildIssueCard(ViewReportsModel report) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -145,9 +157,9 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Description with more space
+          // Description
           Container(
-            height: 150, // Increased height for more description space
+            height: 150,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.grey[100],
@@ -210,13 +222,14 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
             ),
           if (report.image.isNotEmpty) const SizedBox(height: 12),
 
-          // Map Preview
+          // Map preview
           _buildMapPreview(report),
         ],
       ),
     );
   }
 
+  /// Builds the overall UI, handling loading, errors, or displaying report details.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,8 +245,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.account_circle, color: Colors.black, size: 28),
+            icon: const Icon(Icons.account_circle, color: Colors.black, size: 28),
             onPressed: () {
               Navigator.pushReplacementNamed(context, "/profile");
             },
