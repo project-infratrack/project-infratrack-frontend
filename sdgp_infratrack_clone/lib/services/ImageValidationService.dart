@@ -8,19 +8,7 @@ import 'package:http/http.dart' as http;
 class ImageValidationService {
 
 
-  static String get validationEndpoint {
-    // For Android emulator, 10.0.2.2 points to host machine's localhost
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8000/predict';
-    }
-    // For iOS simulator
-    else if (Platform.isIOS) {
-      return 'http://localhost:8000/predict';
-    }
-    else {
-      return 'http://127.0.0.1:8000/predict';
-    }
-  }
+  static String validationEndpoint = 'https://infratrack-ml-model-deploy.azurewebsites.net/predict';
 
   static Future<Map<String, dynamic>> validateImage(File imageFile) async {
     // Create a multipart request
