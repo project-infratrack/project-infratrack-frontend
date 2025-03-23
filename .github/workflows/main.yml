@@ -32,14 +32,6 @@ jobs:
         run: |
           find sdgp_infratrack_clone/build -type f -name "*.apk" | sort
 
-      - name: Delete existing releases
-        uses: dev-drprasad/delete-older-releases@v0.2.0
-        with:
-          keep_latest: 0 # Delete all releases
-          delete_tags: true #delete tags associated with the releases
-          repo: ${{ github.repository }}
-        env:
-          GITHUB_TOKEN: ${{secrets.TOKEN}}
 
       - name: Generate version
         id: version
