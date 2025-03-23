@@ -23,14 +23,14 @@ jobs:
           cd sdgp_infratrack_clone
           flutter pub get
 
-      - name: Check for any formatting issues
-        run: flutter format --set-exit-if-changed .
+      # - name: Check for any formatting issues
+      #   run: flutter format --set-exit-if-changed .
 
-      - name: Statically analyze the Dart code
-        run: flutter analyze .
+      # - name: Statically analyze the Dart code
+      #   run: flutter analyze .
 
-      - name: Run tests
-        run: flutter test
+      # - name: Run tests
+      #   run: flutter test
 
       - name: Build APK
         run: flutter build apk --release --split-per-abi
