@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - release # Update to match your branch name
+      - release # Use your actual branch name
 name: Build the application
 
 jobs:
@@ -32,11 +32,30 @@ jobs:
         run: |
           find sdgp_infratrack_clone/build -type f -name "*.apk" | sort
 
-
-      - name: Generate version
+      - name: Get latest release version and increment
         id: version
         run: |
-          echo "VERSION=v0.1.01" >> $GITHUB_OUTPUT
+          # Get latest release tag, default to v0.1.0 if none exists
+          LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.TOKEN }}" \
+                      "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
+                      grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || echo "v0.1.0")
+
+          # Extract version components
+          if [[ $LATEST_TAG =~ v([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+            MAJOR=${BASH_REMATCH[1]}
+            MINOR=${BASH_REMATCH[2]}
+            PATCH=${BASH_REMATCH[3]}
+            
+            # Increment patch version
+            PATCH=$((PATCH + 1))
+            NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          else
+            # Default if tag doesn't match expected format
+            NEW_VERSION="v0.1.1"
+          fi
+
+          echo "Previous version: $LATEST_TAG, New version: $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Push to releases
         uses: ncipollo/release-action@v1
@@ -44,3 +63,5 @@ jobs:
           artifacts: "sdgp_infratrack_clone/build/app/outputs/flutter-apk/app-*.apk"
           tag: ${{ steps.version.outputs.VERSION }}
           token: ${{secrets.TOKEN}}
+          name: "InfraTrack Release ${{ steps.version.outputs.VERSION }}"
+          body: "Automatic build from GitHub Actions workflow"
