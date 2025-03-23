@@ -6,6 +6,8 @@ import 'package:infratrack/model/view_report_model.dart';
 import 'package:infratrack/services/problem_page_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:infratrack/components/MapViewPopup.dart';
+// 1. Import the geocoding package
+import 'package:geocoding/geocoding.dart';
 
 /// A screen that displays detailed information about a specific reported issue.
 ///
@@ -26,8 +28,11 @@ class IssuesNearbyScreen extends StatefulWidget {
 
 /// State class for [IssuesNearbyScreen], handling data fetching and UI building.
 class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
-  /// Future holding report data fetched from backend.
+  /// Future holding report data fetched from the backend.
   Future<ViewReportsModel>? _reportFuture;
+
+  /// Holds the human-readable address from latitude/longitude.
+  String _locationAddress = "Loading location...";
 
   @override
   void initState() {
@@ -35,13 +40,46 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     _loadReport();
   }
 
-  /// Fetches report details from backend using stored auth token and reportId.
+  /// Fetches report details using stored auth token and `reportId`.
+  /// Then calls `_getAddressFromLatLng` to set `_locationAddress`.
   Future<void> _loadReport() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? "";
+
     setState(() {
       _reportFuture = ProblemPageServices.getReportById(widget.reportId, token);
     });
+
+    // Once the report is fetched, convert its lat/lng to a human-readable address
+    _reportFuture?.then((report) {
+      _getAddressFromLatLng(report.latitude, report.longitude);
+    });
+  }
+
+  /// Use the geocoding package to convert lat/lng into a readable address.
+  Future<void> _getAddressFromLatLng(double lat, double lng) async {
+    try {
+      // Fetch placemarks from the geocoding package
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final Placemark place = placemarks.first;
+        setState(() {
+          _locationAddress = "${place.street}, "
+                             "${place.locality}, "
+                             "${place.administrativeArea}, "
+                             "${place.country}";
+        });
+      } else {
+        setState(() {
+          _locationAddress = "Location not found";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _locationAddress = "Error finding location";
+      });
+      debugPrint("Error during reverse geocoding: $e");
+    }
   }
 
   /// Builds a static map preview showing the report location.
@@ -178,7 +216,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Location
+          // Location (using our reverse-geocoded address)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -191,7 +229,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    report.location,
+                    _locationAddress,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black,
