@@ -11,10 +11,10 @@ import 'package:geocoding/geocoding.dart';
 
 /// A screen that displays detailed information about a specific reported issue.
 ///
-/// This screen fetches the report details based on the `reportId` provided
-/// and displays report type, ID, description, location, image, and location map.
-///
-/// The map preview is interactive and opens a full-screen map when tapped.
+// This screen fetches the report details based on the `reportId` provided
+// and displays report type, ID, description, location, image, and location map.
+//
+// The map preview is interactive and opens a full-screen map when tapped.
 class IssuesNearbyScreen extends StatefulWidget {
   /// ID of the report to be fetched and displayed.
   final String reportId;
@@ -195,23 +195,20 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Description
+          // Description (Dynamically sized)
           Container(
-            height: 150,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: SingleChildScrollView(
-              child: Text(
-                report.description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.left,
+            child: Text(
+              report.description,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black,
               ),
+              textAlign: TextAlign.left,
             ),
           ),
           const SizedBox(height: 12),

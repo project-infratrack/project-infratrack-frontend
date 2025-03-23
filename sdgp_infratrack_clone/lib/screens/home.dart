@@ -7,9 +7,9 @@ import 'package:infratrack/components/bottom_navigation.dart';
 
 /// A screen that displays a list of infrastructure reports.
 ///
-/// The [HomeScreen] serves as the main page of the app. It loads a token from
-/// [SharedPreferences] and fetches reports from the backend. It includes a
-/// navigation drawer, a header with logo, and a bottom navigation bar.
+// The [HomeScreen] serves as the main page of the app. It loads a token from
+// [SharedPreferences] and fetches reports from the backend. It includes a
+// navigation drawer, a header with logo, and a bottom navigation bar.
 class HomeScreen extends StatefulWidget {
   /// Creates a [HomeScreen] widget.
   const HomeScreen({super.key});
@@ -180,13 +180,7 @@ class HomeScreenState extends State<HomeScreen> {
                   fit: BoxFit.cover,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Your Infrastructure Monitoring App",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
+                // Removed the "Your Infrastructure Monitoring App" Text widget here.
               ],
             ),
           ),
@@ -272,10 +266,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// A widget that represents an individual issue report card.
-///
-/// Displays the report details (type and description) along with interactive like
-/// and dislike buttons. Tapping on the card navigates to the detailed issue view.
 class IssueCard extends StatefulWidget {
   /// The report data to be displayed.
   final ReportModel report;
@@ -286,7 +276,6 @@ class IssueCard extends StatefulWidget {
   /// Callback function to refresh the HomeScreen.
   final VoidCallback onRefresh;
 
-  /// Creates an [IssueCard] widget.
   const IssueCard({
     super.key,
     required this.report,
@@ -298,7 +287,6 @@ class IssueCard extends StatefulWidget {
   State<IssueCard> createState() => _IssueCardState();
 }
 
-/// The state for [IssueCard] that manages like and dislike interactions.
 class _IssueCardState extends State<IssueCard> {
   late int likes;
   late int dislikes;
@@ -312,10 +300,6 @@ class _IssueCardState extends State<IssueCard> {
     dislikes = widget.report.thumbsDown;
   }
 
-  /// Toggles the like status for the report.
-  ///
-  /// If the report is liked, it will be unliked; if not, it will be liked.
-  /// If the report was previously disliked, the dislike is removed.
   Future<void> _toggleLike() async {
     setState(() {
       if (isLiked) {
@@ -337,11 +321,9 @@ class _IssueCardState extends State<IssueCard> {
       } else {
         await HomeServices.removeThumbsUp(widget.report.id, widget.token);
       }
-      // Refresh the HomeScreen after a successful update.
       widget.onRefresh();
     } catch (error) {
       setState(() {
-        // Revert UI changes if the API call fails.
         if (isLiked) {
           likes--;
           isLiked = false;
@@ -360,10 +342,6 @@ class _IssueCardState extends State<IssueCard> {
     }
   }
 
-  /// Toggles the dislike status for the report.
-  ///
-  /// If the report is disliked, it will be undisliked; if not, it will be disliked.
-  /// If the report was previously liked, the like is removed.
   Future<void> _toggleDislike() async {
     setState(() {
       if (isDisliked) {
@@ -385,11 +363,9 @@ class _IssueCardState extends State<IssueCard> {
       } else {
         await HomeServices.removeThumbsDown(widget.report.id, widget.token);
       }
-      // Refresh the HomeScreen after a successful update.
       widget.onRefresh();
     } catch (error) {
       setState(() {
-        // Revert UI changes if the API call fails.
         if (isDisliked) {
           dislikes--;
           isDisliked = false;
@@ -420,20 +396,19 @@ class _IssueCardState extends State<IssueCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () {
-          // Navigate to the issue detail screen with the report ID.
           Navigator.pushNamed(
             context,
             "/issue_nearby",
             arguments: {"reportId": widget.report.id},
           );
         },
-        child: Padding(
+        child: Container(
+          height: 150, // Fixed height for consistency
           padding: const EdgeInsets.all(16),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Decorative vertical accent bar.
                 Container(
                   width: 5,
                   decoration: BoxDecoration(
@@ -446,7 +421,6 @@ class _IssueCardState extends State<IssueCard> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Issue details column.
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,6 +436,8 @@ class _IssueCardState extends State<IssueCard> {
                       const SizedBox(height: 8),
                       Text(
                         widget.report.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -471,7 +447,6 @@ class _IssueCardState extends State<IssueCard> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Like and dislike buttons column.
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
