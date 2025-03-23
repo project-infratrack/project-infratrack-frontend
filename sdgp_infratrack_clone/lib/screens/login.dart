@@ -1,23 +1,29 @@
-// lib/screens/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:infratrack/services/login_services.dart';
 
+/// A screen that allows users to log in to the InfraTrack app.
+///
+/// This screen contains text fields for NIC number and password, a login button,
+/// a "forgot password" link, and navigation to the sign-up page. It integrates with
+/// [LoginServices] to authenticate users.
 class LoginScreen extends StatefulWidget {
+  /// Creates an instance of [LoginScreen].
   const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+/// State class for [LoginScreen], handling form inputs, visibility toggle,
+/// loading state, and login functionality.
 class _LoginScreenState extends State<LoginScreen> {
-  bool _obscureText = true; // Toggles password visibility
+  bool _obscureText = true; // Toggles password visibility.
 
-  // Controllers to capture user input
+  // Controllers to capture user input.
   final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  /// Optional: a loading indicator to display while the login request is in flight
+  /// Indicates if the login request is in progress.
   bool _isLoading = false;
 
   @override
@@ -29,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo (adjust image asset as needed)
+              // App logo section.
               Padding(
                 padding: const EdgeInsets.only(top: 50.0),
                 child: Column(
@@ -40,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // Login Container
+              // Login form container.
               SizedBox(
                 height: 600,
                 child: Container(
@@ -64,13 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 50),
 
-                      // ID Number Field
+                      /// NIC Number input field.
                       TextField(
                         controller: _idNumberController,
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.person, color: Colors.white70),
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                           filled: true,
                           fillColor: const Color(0xFF2C3E50),
                           hintText: "NIC Number",
@@ -81,22 +86,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: Colors.white, width: 2),
+                            borderSide: const BorderSide(color: Colors.white, width: 2),
                           ),
                         ),
                         style: const TextStyle(color: Colors.white),
                       ),
                       const SizedBox(height: 25),
 
-                      // Password Field with Visibility Toggle
+                      /// Password input field with visibility toggle.
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscureText,
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.lock, color: Colors.white70),
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                           filled: true,
                           fillColor: const Color(0xFF2C3E50),
                           hintText: "Password",
@@ -107,8 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: Colors.white, width: 2),
+                            borderSide: const BorderSide(color: Colors.white, width: 2),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -117,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _obscureText = !_obscureText; // Toggle visibility
+                                _obscureText = !_obscureText; // Toggle visibility.
                               });
                             },
                           ),
@@ -126,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Forgot Password
+                      /// Forgot password navigation.
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -141,13 +143,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Login Button
+                      /// Login button with loading indicator.
                       ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -168,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Sign-up Prompt
+                      /// Sign-up prompt.
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -201,10 +202,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// This method is called when the Login button is pressed
+  /// Handles the login process when the user presses the "Log in" button.
+  ///
+  /// This method:
+  /// - Shows a loading indicator.
+  /// - Sends login credentials to the backend via [LoginServices].
+  /// - Handles the response:
+  ///   - On success: navigates to the Home screen.
+  ///   - On failure: shows a SnackBar with an error message.
   Future<void> _login() async {
     setState(() {
-      _isLoading = true; // Show loading indicator
+      _isLoading = true; // Show loading indicator.
     });
 
     final idNumber = _idNumberController.text.trim();
@@ -212,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await LoginServices.userLogin(idNumber, password);
-      // Handle the response (save tokens, navigate, etc.)
+      // Successful login response
       debugPrint('Login successful. Response: $response');
       Navigator.pushNamed(context, "/home");
     } catch (error) {
@@ -222,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } finally {
       setState(() {
-        _isLoading = false; // Hide loading indicator
+        _isLoading = false; // Hide loading indicator.
       });
     }
   }

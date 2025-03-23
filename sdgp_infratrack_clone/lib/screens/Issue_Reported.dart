@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
 
+/// A screen that displays a success message after an issue has been reported.
+///
+/// This stateless widget presents a confirmation message to the user within a styled
+/// container. It features a transparent AppBar with a close button that allows the user
+/// to navigate back, and it includes a bottom navigation bar for app-wide navigation.
 class IssueReportedScreen extends StatelessWidget {
+  /// Creates an instance of [IssueReportedScreen].
   const IssueReportedScreen({super.key});
 
+  /// Builds the widget tree for the [IssueReportedScreen].
+  ///
+  /// The [Scaffold] contains:
+  /// - A transparent AppBar with a close button to dismiss the screen.
+  /// - A body that centers a container with a success icon and message.
+  /// - A bottom navigation bar for further navigation within the app.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,9 +36,8 @@ class IssueReportedScreen extends StatelessWidget {
             width: constraints.maxWidth,
             height: constraints.maxHeight,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Vertical alignment
-              crossAxisAlignment:
-                  CrossAxisAlignment.center, // Horizontal alignment
+              mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+              crossAxisAlignment: CrossAxisAlignment.center, // Center horizontally
               children: [
                 Container(
                   width: constraints.maxWidth * 0.8,
@@ -40,6 +51,7 @@ class IssueReportedScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Success icon inside a circular avatar.
                       CircleAvatar(
                         radius: constraints.maxWidth * 0.15,
                         backgroundColor: Colors.white,
@@ -50,6 +62,7 @@ class IssueReportedScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Success message text.
                       Text(
                         "Issue Reported Successfully!",
                         style: TextStyle(
@@ -70,7 +83,7 @@ class IssueReportedScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigation(
         selectedIndex: 0,
         onItemTapped: (index) {
-          // Handle navigation changes
+          // Handle navigation changes if necessary.
         },
       ),
     );

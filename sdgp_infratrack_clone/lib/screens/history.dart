@@ -5,13 +5,20 @@ import 'package:infratrack/model/history_report_model.dart';
 import 'package:infratrack/services/history_services.dart';
 import '../components/bottom_navigation.dart'; // Your BottomNavigation widget
 
+/// A screen that displays a list of the user's reported problems.
+///
+/// This screen retrieves the user's report history from the server using the saved
+/// authentication token. If no token is found or it is invalid, the user is redirected
+/// to the login screen.
 class HistoryScreen extends StatefulWidget {
+  /// Creates an instance of [HistoryScreen].
   const HistoryScreen({super.key});
 
   @override
   _HistoryScreenState createState() => _HistoryScreenState();
 }
 
+/// The state for [HistoryScreen] that handles fetching and displaying user reports.
 class _HistoryScreenState extends State<HistoryScreen> {
   Future<List<HistoryReportModel>>? _userReports;
   String? _token;
@@ -22,6 +29,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _loadTokenAndFetchReports();
   }
 
+  /// Loads the authentication token from shared preferences and fetches user reports.
+  ///
+  /// If the token is null or empty, navigates to the login screen.
   Future<void> _loadTokenAndFetchReports() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -37,6 +47,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+  /// Builds the UI for the HistoryScreen.
+  ///
+  /// Displays the user's report history if available. Shows a loading indicator while fetching data,
+  /// an error message if something goes wrong, or an empty state if there are no reports.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +136,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  /// Problem Card
+  /// Builds a card widget that displays details of a single report.
+  ///
+  /// The card is tappable and navigates to the detailed report view when tapped.
+  ///
+  /// Parameters:
+  /// - [context]: The build context.
+  /// - [report]: The report data to display.
+  ///
+  /// Returns a [Widget] representing the problem card.
   Widget _buildProblemCard(BuildContext context, HistoryReportModel report) {
     return Card(
       elevation: 3,
@@ -187,7 +209,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  /// Priority/Status Tags
+  /// Builds a styled tag widget used to display priority or status.
+  ///
+  /// Parameters:
+  /// - [text]: The label text for the tag.
+  /// - [color]: The background color of the tag.
+  ///
+  /// Returns a [Widget] representing the tag.
   Widget _buildTag(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -206,7 +234,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  /// Empty State Widget
+  /// Builds a widget that displays an empty state for the screen.
+  ///
+  /// This is used when there are no reports to display or when an error occurs.
+  ///
+  /// Parameters:
+  /// - [title]: The title text for the empty state.
+  /// - [message]: The detailed message for the empty state.
+  ///
+  /// Returns a [Widget] representing the empty state.
   Widget _buildEmptyState(String title, String message) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
