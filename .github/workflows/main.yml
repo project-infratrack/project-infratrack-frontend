@@ -38,7 +38,8 @@ jobs:
           keep_latest: 0 # Delete all releases
           delete_tags: true #delete tags associated with the releases
           repo: ${{ github.repository }}
-          token: ${{ secrets.TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{secrets.TOKEN}}
 
       - name: Generate version
         id: version
