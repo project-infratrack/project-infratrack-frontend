@@ -31,9 +31,14 @@ jobs:
         run: |
           find sdgp_infratrack_clone/build -type f -name "*.apk" | sort
 
+      - name: Generate version
+        id: version
+        run: |
+          echo "VERSION=v0.1.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
       - name: Push to releases
         uses: ncipollo/release-action@v1
         with:
           artifacts: "sdgp_infratrack_clone/build/*.apk"
-          tag: v0.0.1
+          tag: ${{ steps.version.outputs.VERSION }}
           token: ${{secrets.TOKEN}}
