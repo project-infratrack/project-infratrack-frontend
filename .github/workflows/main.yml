@@ -20,8 +20,9 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2" # Updated to newer Flutter version
+          flutter-version: "3.29.2"
           channel: "stable"
+
       - run: |
           cd sdgp_infratrack_clone
           flutter pub get
@@ -31,10 +32,18 @@ jobs:
         run: |
           find sdgp_infratrack_clone/build -type f -name "*.apk" | sort
 
+      - name: Delete existing releases
+        uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          keep_latest: 0 # Delete all releases
+          delete_tags: true #delete tags associated with the releases
+          repo: ${{ github.repository }}
+          token: ${{ secrets.TOKEN }}
+
       - name: Generate version
         id: version
         run: |
-          echo "VERSION=v0.1.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "VERSION=v0.1.01" >> $GITHUB_OUTPUT
 
       - name: Push to releases
         uses: ncipollo/release-action@v1
