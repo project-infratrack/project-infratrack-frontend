@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - releases # Update to match your branch name
+      - release # Update to match your branch name
 name: Build the application
 
 jobs:
