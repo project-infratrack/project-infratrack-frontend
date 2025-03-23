@@ -6,17 +6,33 @@ import 'package:infratrack/model/view_report_model.dart';
 import 'package:infratrack/services/problem_page_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:infratrack/components/MapViewPopup.dart';
+// 1. Import the geocoding package
+import 'package:geocoding/geocoding.dart';
 
+/// A screen that displays detailed information about a specific reported issue.
+///
+// This screen fetches the report details based on the `reportId` provided
+// and displays report type, ID, description, location, image, and location map.
+//
+// The map preview is interactive and opens a full-screen map when tapped.
 class IssuesNearbyScreen extends StatefulWidget {
+  /// ID of the report to be fetched and displayed.
   final String reportId;
+
+  /// Creates an instance of [IssuesNearbyScreen].
   const IssuesNearbyScreen({super.key, required this.reportId});
 
   @override
   State<IssuesNearbyScreen> createState() => _IssuesNearbyScreenState();
 }
 
+/// State class for [IssuesNearbyScreen], handling data fetching and UI building.
 class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
+  /// Future holding report data fetched from the backend.
   Future<ViewReportsModel>? _reportFuture;
+
+  /// Holds the human-readable address from latitude/longitude.
+  String _locationAddress = "Loading location...";
 
   @override
   void initState() {
@@ -24,16 +40,51 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     _loadReport();
   }
 
+  /// Fetches report details using stored auth token and `reportId`.
+  /// Then calls `_getAddressFromLatLng` to set `_locationAddress`.
   Future<void> _loadReport() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? "";
+
     setState(() {
       _reportFuture = ProblemPageServices.getReportById(widget.reportId, token);
     });
+
+    // Once the report is fetched, convert its lat/lng to a human-readable address
+    _reportFuture?.then((report) {
+      _getAddressFromLatLng(report.latitude, report.longitude);
+    });
   }
 
-  /// Builds a map preview that shows the report location.
-  /// When tapped, it opens a read-only full-screen map view.
+  /// Use the geocoding package to convert lat/lng into a readable address.
+  Future<void> _getAddressFromLatLng(double lat, double lng) async {
+    try {
+      // Fetch placemarks from the geocoding package
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final Placemark place = placemarks.first;
+        setState(() {
+          _locationAddress = "${place.street}, "
+                             "${place.locality}, "
+                             "${place.administrativeArea}, "
+                             "${place.country}";
+        });
+      } else {
+        setState(() {
+          _locationAddress = "Location not found";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _locationAddress = "Error finding location";
+      });
+      debugPrint("Error during reverse geocoding: $e");
+    }
+  }
+
+  /// Builds a static map preview showing the report location.
+  ///
+  /// Tapping on the map opens a full-screen read-only map view.
   Widget _buildMapPreview(ViewReportsModel report) {
     final LatLng reportLocation = LatLng(report.latitude, report.longitude);
     return Container(
@@ -66,7 +117,6 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
               onMapCreated: (controller) {},
             ),
           ),
-          // Overlay an InkWell to capture taps.
           Positioned.fill(
             child: Material(
               color: Colors.transparent,
@@ -89,7 +139,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
     );
   }
 
-  /// Builds a card with report details, each wrapped in its own container.
+  /// Builds the main card widget displaying all report details.
   Widget _buildIssueCard(ViewReportsModel report) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -145,28 +195,25 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Description with more space
+          // Description (Dynamically sized)
           Container(
-            height: 150, // Increased height for more description space
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: SingleChildScrollView(
-              child: Text(
-                report.description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.left,
+            child: Text(
+              report.description,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black,
               ),
+              textAlign: TextAlign.left,
             ),
           ),
           const SizedBox(height: 12),
 
-          // Location
+          // Location (using our reverse-geocoded address)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -179,7 +226,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    report.location,
+                    _locationAddress,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black,
@@ -210,13 +257,14 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
             ),
           if (report.image.isNotEmpty) const SizedBox(height: 12),
 
-          // Map Preview
+          // Map preview
           _buildMapPreview(report),
         ],
       ),
     );
   }
 
+  /// Builds the overall UI, handling loading, errors, or displaying report details.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,8 +280,7 @@ class _IssuesNearbyScreenState extends State<IssuesNearbyScreen> {
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.account_circle, color: Colors.black, size: 28),
+            icon: const Icon(Icons.account_circle, color: Colors.black, size: 28),
             onPressed: () {
               Navigator.pushReplacementNamed(context, "/profile");
             },

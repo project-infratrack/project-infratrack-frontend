@@ -5,13 +5,21 @@ import 'package:infratrack/model/report_model.dart';
 import 'package:infratrack/services/home_services.dart';
 import 'package:infratrack/components/bottom_navigation.dart';
 
+/// A screen that displays a list of infrastructure reports.
+///
+// The [HomeScreen] serves as the main page of the app. It loads a token from
+// [SharedPreferences] and fetches reports from the backend. It includes a
+// navigation drawer, a header with logo, and a bottom navigation bar.
 class HomeScreen extends StatefulWidget {
+  /// Creates a [HomeScreen] widget.
   const HomeScreen({super.key});
 
   @override
   HomeScreenState createState() => HomeScreenState();
 }
 
+/// The state for [HomeScreen] that handles data fetching, UI updates,
+/// and navigation.
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   Future<List<ReportModel>>? _reportFuture;
@@ -23,7 +31,9 @@ class HomeScreenState extends State<HomeScreen> {
     _loadTokenAndFetchReports();
   }
 
-  /// Loads the token from SharedPreferences and then fetches reports.
+  /// Loads the authentication token from [SharedPreferences] and fetches the reports.
+  ///
+  /// If no token is found or it is empty, the user is redirected to the login screen.
   Future<void> _loadTokenAndFetchReports() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -40,6 +50,10 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Handles bottom navigation item taps.
+  ///
+  /// Updates the selected index and navigates to the corresponding screen.
+  /// - [index] The tapped navigation item index.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -60,7 +74,7 @@ class HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // Drawer header with dark background.
+            // Drawer header with a dark background.
             DrawerHeader(
               decoration: const BoxDecoration(
                 color: Color(0xFF2C3E50),
@@ -136,7 +150,7 @@ class HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // Header area with a gradient and logo.
+          // Header area with a gradient background and logo.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -166,18 +180,12 @@ class HomeScreenState extends State<HomeScreen> {
                   fit: BoxFit.cover,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Your Infrastructure Monitoring App",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
+                // Removed the "Your Infrastructure Monitoring App" Text widget here.
               ],
             ),
           ),
           const SizedBox(height: 10),
-          // Expanded List of Issue Cards in a RefreshIndicator.
+          // Expanded list of issue cards wrapped in a RefreshIndicator.
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadTokenAndFetchReports,
@@ -239,7 +247,7 @@ class HomeScreenState extends State<HomeScreen> {
                               return IssueCard(
                                 report: report,
                                 token: _token!, // Pass the extracted token.
-                                onRefresh: _loadTokenAndFetchReports, // Callback to refresh
+                                onRefresh: _loadTokenAndFetchReports, // Callback to refresh.
                               );
                             },
                           );
@@ -258,12 +266,14 @@ class HomeScreenState extends State<HomeScreen> {
   }
 }
 
-//---------------------------------
-// Updated IssueCard Widget
-//---------------------------------
 class IssueCard extends StatefulWidget {
+  /// The report data to be displayed.
   final ReportModel report;
+
+  /// The authentication token used for API calls.
   final String token;
+
+  /// Callback function to refresh the HomeScreen.
   final VoidCallback onRefresh;
 
   const IssueCard({
@@ -311,11 +321,9 @@ class _IssueCardState extends State<IssueCard> {
       } else {
         await HomeServices.removeThumbsUp(widget.report.id, widget.token);
       }
-      // Refresh the HomeScreen after successful update.
       widget.onRefresh();
     } catch (error) {
       setState(() {
-        // Revert UI changes if API call fails.
         if (isLiked) {
           likes--;
           isLiked = false;
@@ -355,11 +363,9 @@ class _IssueCardState extends State<IssueCard> {
       } else {
         await HomeServices.removeThumbsDown(widget.report.id, widget.token);
       }
-      // Refresh the HomeScreen after successful update.
       widget.onRefresh();
     } catch (error) {
       setState(() {
-        // Revert UI changes if API call fails.
         if (isDisliked) {
           dislikes--;
           isDisliked = false;
@@ -390,20 +396,19 @@ class _IssueCardState extends State<IssueCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
         onTap: () {
-          // Pass the report ID dynamically to the /issue_nearby route
           Navigator.pushNamed(
             context,
             "/issue_nearby",
             arguments: {"reportId": widget.report.id},
           );
         },
-        child: Padding(
+        child: Container(
+          height: 150, // Fixed height for consistency
           padding: const EdgeInsets.all(16),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Decorative vertical accent bar.
                 Container(
                   width: 5,
                   decoration: BoxDecoration(
@@ -416,7 +421,6 @@ class _IssueCardState extends State<IssueCard> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Issue Details Column.
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -432,6 +436,8 @@ class _IssueCardState extends State<IssueCard> {
                       const SizedBox(height: 8),
                       Text(
                         widget.report.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -441,7 +447,6 @@ class _IssueCardState extends State<IssueCard> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Like and Dislike Buttons Column.
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
