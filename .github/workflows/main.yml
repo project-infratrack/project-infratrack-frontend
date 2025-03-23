@@ -22,9 +22,10 @@ jobs:
         with:
           flutter-version: "3.29.2" # Updated to newer Flutter version
           channel: "stable"
-      - run: cd sdgp_infratrack_clone
-      - run: flutter pub get
-      - run: flutter build apk --release --split-per-abi
+      - run: |
+          cd sdgp_infratrack_clone
+          flutter pub get
+          flutter build apk --release --split-per-abi
 
       - name: List build directory contents (for debugging)
         run: |
