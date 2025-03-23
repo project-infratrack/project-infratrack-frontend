@@ -33,7 +33,9 @@ jobs:
       #   run: flutter test
 
       - name: Build APK
-        run: flutter build apk --release --split-per-abi
+        run: |
+          cd sdgp_infratrack_clone
+          flutter build apk --release --split-per-abi
 
       - name: Push to releases
         uses: ncipollo/release-action@v1
