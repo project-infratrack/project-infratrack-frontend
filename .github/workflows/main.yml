@@ -12,36 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "11"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.29.2" # Updated to newer Flutter version
           channel: "stable"
-
-      - name: Get dependencies
-        run: |
-          cd sdgp_infratrack_clone
-          flutter pub get
-
-      # - name: Check for any formatting issues
-      #   run: |
-      #     cd sdgp_infratrack_clone
-      #     flutter format --set-exit-if-changed .
-
-      # - name: Statically analyze the Dart code
-      #   run: |
-      #     cd sdgp_infratrack_clone
-      #     flutter analyze .
-
-      # - name: Run tests
-      #   run: |
-      #     cd sdgp_infratrack_clone
-      #     flutter test
-
-      - name: Build APK
-        run: |
-          cd sdgp_infratrack_clone
-          flutter build apk --release --split-per-abi
+      - run: flutter pub get
+      - run: flutter build apk --release --split-per-abi
 
       - name: List build directory contents (for debugging)
         run: |
@@ -50,6 +32,6 @@ jobs:
       - name: Push to releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/apk/release/"
+          artifacts: "sdgp_infratrack_clone/build/*.apk"
           tag: v0.0.1
           token: ${{secrets.TOKEN}}
